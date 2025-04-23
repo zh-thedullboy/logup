@@ -5,9 +5,9 @@
 #include <vector>
 #include <array>
 
-class Prover{
+class sProver{
 public:
-    Prover(const MultilinearPolynomial& g);
+    sProver(const MultilinearPolynomial& g);
     void initialize();
     std::array<Goldilocks2::Element, 2> send_message(const size_t& round,const std::vector<Goldilocks2::Element>& rands);
     Goldilocks2::Element get_sum() const { return sum; }
@@ -19,11 +19,11 @@ public:
     size_t nrnd;
 };
 
-class Verifier{
+class sVerifier{
 public:
     // should be replaced with a pcs
     typedef MultilinearPolynomial Oracle;
-    static bool execute_sumcheck(Prover& pr, const Oracle& oracle);
+    static bool execute_sumcheck(sProver& pr, const Oracle& oracle);
 private:
     static Goldilocks2::Element challenge();
 };

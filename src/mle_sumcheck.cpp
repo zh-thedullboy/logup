@@ -4,27 +4,13 @@
 // #include <gmpxx.h>
 #include <random>
 
-Prover::Prover(const MultilinearPolynomial& g):g(g), nrnd(g.num_vars), sum(Goldilocks2::zero()){}
+sProver::sProver(const MultilinearPolynomial& g):g(g), nrnd(g.num_vars), sum(Goldilocks2::zero()){}
 
-
-// void Prover::initialize(){
-//     uint64_t tsize = 1ull << g.num_vars;
-//     keepTable.resize(tsize, Goldilocks2::zero());
-    
-//     // traverse all monomials in g
-//     for (uint64_t mask = 0; mask < tsize; ++mask) {
-//         //traverse all A[x1, x2, ..., xn]
-//         for(uint64_t x = 0; x < tsize; ++x){
-//             // this x enables monomial masked by mask to equal to 1
-//             if ((mask & x) == mask) Goldilocks2::add(keepTable[x], keepTable[x], g.get_term(mask));
-//         }
-//     }
-// }
 /*
 1. intialize the bookkeeping table A of g in time O(l * 2 ^ l) via zeta transform
 2. calculate sum
 */
-void Prover::initialize() {
+void sProver::initialize() {
     uint64_t tsize = 1ull << g.num_vars;
     keepTable.resize(tsize, Goldilocks2::zero());
 
@@ -46,7 +32,7 @@ void Prover::initialize() {
     }
 }
 
-std::array<Goldilocks2::Element, 2> Prover::send_message(const size_t& round, const std::vector<Goldilocks2::Element>& rands){
+std::array<Goldilocks2::Element, 2> sProver::send_message(const size_t& round, const std::vector<Goldilocks2::Element>& rands){
     std::array<Goldilocks2::Element, 2> s = {0, 0};
     
     // notation referce: Libra(https://eprint.iacr.org/2019/317.pdf) Algorithm 1
@@ -72,9 +58,9 @@ std::array<Goldilocks2::Element, 2> Prover::send_message(const size_t& round, co
     return s;
 }
 
-// Verifier::Verifier(){}
+// sVerifier::sVerifier(){}
 
-bool Verifier::execute_sumcheck(Prover& pr, const Oracle& oracle){
+bool sVerifier::execute_sumcheck(sProver& pr, const Oracle& oracle){
     pr.initialize();
     Goldilocks2::Element sum = pr.get_sum();
     size_t nrnd = pr.get_rounds();
@@ -132,7 +118,7 @@ bool Verifier::execute_sumcheck(Prover& pr, const Oracle& oracle){
 }
 
 // we use goldilocks 2-extension, so no bother specifying the field
-Goldilocks2::Element Verifier::challenge(){
+Goldilocks2::Element sVerifier::challenge(){
     static std::random_device rd;
     static std::mt19937_64 gen(rd());
     

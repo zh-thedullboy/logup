@@ -4,3 +4,4 @@
 #include "goldilocks_quadratic_ext.h"
 #include "mle.h"
 #include "mle_sumcheck.h"
+#include "product_sumcheck.h"
