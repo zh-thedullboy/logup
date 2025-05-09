@@ -18,6 +18,7 @@ private:
     MultilinearPolynomial p1;
     MultilinearPolynomial p2;
     MultilinearPolynomial p3;
+    
     std::vector<Goldilocks2::Element> keepTablep1;
     std::vector<Goldilocks2::Element> keepTablep2;
     std::vector<Goldilocks2::Element> keepTablep3;

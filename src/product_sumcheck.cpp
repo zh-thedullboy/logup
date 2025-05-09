@@ -6,42 +6,48 @@
 #include <random>
 #include <cassert>
 
-pProver::pProver(const MultilinearPolynomial& p1, const MultilinearPolynomial& p2, const MultilinearPolynomial& p3):p1(p1), p2(p2), p3(p3), nrnd(p1.num_vars), sum(Goldilocks2::zero()){
-    assert(p1.num_vars == p2.num_vars && p1.num_vars == p3.num_vars);
+pProver::pProver(const MultilinearPolynomial& p1, const MultilinearPolynomial& p2, const MultilinearPolynomial& p3):p1(p1), p2(p2), p3(p3), nrnd(p1.get_num_vars()), sum(Goldilocks2::zero()){
+    assert(p1.get_num_vars() == p2.get_num_vars() && p1.get_num_vars() == p3.get_num_vars());
+    initialize();
 }
 /*
 1. intialize the bookkeeping table A of g in time O(l * 2 ^ l) via zeta transform
 2. calculate sum
 */
 void pProver::initialize(){
-    uint64_t tsize = 1ull << p1.num_vars;
-    keepTablep1.resize(tsize, Goldilocks2::zero());
-    keepTablep2.resize(tsize, Goldilocks2::zero());
-    keepTablep3.resize(tsize, Goldilocks2::zero());
+    uint64_t tsize = 1ull << p1.get_num_vars();
+    // keepTablep1.resize(tsize, Goldilocks2::zero());
+    // keepTablep2.resize(tsize, Goldilocks2::zero());
+    // keepTablep3.resize(tsize, Goldilocks2::zero());
 
-    for (uint64_t mask = 0; mask < tsize; ++mask) {
-        keepTablep1[mask] = p1.get_term(mask);
-        keepTablep2[mask] = p2.get_term(mask);
-        keepTablep3[mask] = p3.get_term(mask);
-    }
+    // for (uint64_t mask = 0; mask < tsize; ++mask) {
+    //     keepTablep1[mask] = p1.eval_hypercube(mask);
+    //     keepTablep2[mask] = p2.eval_hypercube(mask);
+    //     keepTablep3[mask] = p3.eval_hypercube(mask);
+    // }
 
-    for (uint64_t i = 0; i < p1.num_vars; ++i) {
-        for (uint64_t mask = 0; mask < tsize; ++mask) {
-            if ((mask & (1ull << i)) == 0) {
-                uint64_t superset = mask | (1ull << i);
-                Goldilocks2::add(keepTablep1[superset], keepTablep1[superset], keepTablep1[mask]);
-                Goldilocks2::add(keepTablep2[superset], keepTablep2[superset], keepTablep2[mask]);
-                Goldilocks2::add(keepTablep3[superset], keepTablep3[superset], keepTablep3[mask]);
-            }
-        }
-    }
+    // for (uint64_t i = 0; i < p1.get_num_vars(); ++i) {
+    //     for (uint64_t mask = 0; mask < tsize; ++mask) {
+    //         if ((mask & (1ull << i)) == 0) {
+    //             uint64_t superset = mask | (1ull << i);
+    //             Goldilocks2::add(keepTablep1[superset], keepTablep1[superset], keepTablep1[mask]);
+    //             Goldilocks2::add(keepTablep2[superset], keepTablep2[superset], keepTablep2[mask]);
+    //             Goldilocks2::add(keepTablep3[superset], keepTablep3[superset], keepTablep3[mask]);
+    //         }
+    //     }
+    // }
 
+
+    keepTablep1 = p1.get_eval_table();
+    keepTablep2 = p2.get_eval_table();
+    keepTablep3 = p3.get_eval_table();
     for (uint64_t mask = 0; mask < tsize; ++mask) {
         Goldilocks2::Element p;
         Goldilocks2::mul(p, keepTablep1[mask], keepTablep2[mask]);
         Goldilocks2::mul(p, p, keepTablep3[mask]);
         Goldilocks2::add(sum, sum, p);
     }
+    // std::cout << Goldilocks2::toString(sum) << '\n';
 }
 
 inline void pProver::shrinkTable(const Goldilocks2::Element& r, const uint64_t& offset){
@@ -151,7 +157,7 @@ inline void pVerifier::interpolate_3(Goldilocks2::Element& fr,const Goldilocks2:
 }
 
 bool pVerifier::execute_sumcheck(pProver& pr, const Oracle& oracle){
-    pr.initialize();
+    // pr.initialize();
     Goldilocks2::Element sum = pr.get_sum();
     size_t nrnd = pr.get_rounds();
     std::vector<Goldilocks2::Element> challenges;
@@ -169,7 +175,6 @@ bool pVerifier::execute_sumcheck(pProver& pr, const Oracle& oracle){
             if(!(ss == sum)) return false;
         }
         else{
-            // s_{i - 1}(r) = r * s_{i - 1}(1) + (1-r) * s_{i - 1}(0)
             Goldilocks2::Element sr;
             Goldilocks2::Element r = challenges[round - 2];
             interpolate_3(sr, r, si1[0], si1[1], si1[2], si1[3]);

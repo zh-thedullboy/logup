@@ -5,3 +5,6 @@
 #include "mle.h"
 #include "mle_sumcheck.h"
 #include "product_sumcheck.h"
+#include "util.h"
+#include "logup.h"
+#include "merkle.h"

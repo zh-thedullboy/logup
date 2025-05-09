@@ -3,3 +3,5 @@ test
 script.txt
 *.py
 goldilocks
+src_debug
+merkle-tree

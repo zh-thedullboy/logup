@@ -1,36 +1,137 @@
 #include "mle.h"
 #include "util.h"
 #include <string>
+#include <cassert>
 
-MultilinearPolynomial::MultilinearPolynomial(size_t num_vars):num_vars(num_vars){
-    coeffs.resize(1ull << num_vars, Goldilocks2::zero());
+// MultilinearPolynomial::MultilinearPolynomial(size_t num_vars):num_vars(num_vars){
+//     coeffs.resize(1ull << num_vars, Goldilocks2::zero());
+// }
+
+// MultilinearPolynomial::MultilinearPolynomial(const std::vector<Goldilocks2::Element>& evaluations){
+//     size_t r = find_ceiling_log2(evaluations.size());
+//     num_vars = r;
+//     coeffs = evaluations;
+//     coeffs.resize(1ull << num_vars, Goldilocks2::zero());
+// }
+
+
+// void MultilinearPolynomial::set_term(std::string mask , const Goldilocks2::Element& c){
+//     coeffs[convert_mask_to_u64(mask, num_vars)] = c;
+// }
+
+// void MultilinearPolynomial::set_term(std::string mask , const uint64_t& c){
+//     uint64_t tmp[2] = {c, 0};
+//     coeffs[convert_mask_to_u64(mask, num_vars)] = Goldilocks2::fromU64(tmp);
+// }
+
+// Goldilocks2::Element MultilinearPolynomial::get_term(uint64_t mask) const{
+//     return coeffs[mask];
+// }
+
+// Goldilocks2::Element MultilinearPolynomial::evaluate(const std::vector<Goldilocks2::Element>& point) const{
+//     Goldilocks2::Element result = Goldilocks2::zero();
+//     for (uint64_t mask = 0; mask < coeffs.size(); ++mask) {
+//         Goldilocks2::Element term = coeffs[mask];
+//         for (size_t i = 0; i < num_vars; ++i) {
+//             if ((mask >> i) & 1) {
+//                 // term *= point[i];
+//                 Goldilocks2::mul(term, term, point[num_vars - i - 1]);
+//             }
+//         }
+//         // result += term;
+//         Goldilocks2::add(result, result, term);
+//     }
+//     return result;
+// }
+
+
+// MultilinearPolynomial::MultilinearPolynomial(size_t num_vars):num_vars(num_vars){
+//     coeffs.resize(1ull << num_vars, Goldilocks2::zero());
+// }
+
+// MultilinearPolynomial::MultilinearPolynomial(const std::vector<Goldilocks2::Element>& evaluations){
+//     size_t r = find_ceiling_log2(coeffs.size());
+//     num_vars = r;
+//     coeffs = evaluations;
+//     coeffs.resize(1ull << num_vars, Goldilocks2::zero());
+// }
+
+// MultilinearPolynomial::MultilinearPolynomial(size_t num_vars):num_vars(num_vars){
+//     coeffs.resize(1ull << num_vars, Goldilocks2::zero());
+// }
+
+// MultilinearPolynomial::MultilinearPolynomial(const std::vector<Goldilocks2::Element>& evaluations){
+//     size_t r = find_ceiling_log2(coeffs.size());
+//     num_vars = r;
+//     coeffs = evaluations;
+//     coeffs.resize(1ull << num_vars, Goldilocks2::zero());
+// }
+
+MultilinearPolynomial::MultilinearPolynomial(size_t num_vars):num_vars(num_vars) {
+    evaluations.resize(1ull << num_vars, Goldilocks2::zero());
 }
 
-void MultilinearPolynomial::set_term(std::string mask , const Goldilocks2::Element& c){
-    coeffs[convert_mask_to_u64(mask, num_vars)] = c;
+MultilinearPolynomial::MultilinearPolynomial(const std::vector<Goldilocks2::Element>& evaluations):evaluations(evaluations) {
+    size_t r = find_ceiling_log2(evaluations.size());
+    num_vars = r;
 }
 
-void MultilinearPolynomial::set_term(std::string mask , const uint64_t& c){
-    uint64_t tmp[2] = {c, 0};
-    coeffs[convert_mask_to_u64(mask, num_vars)] = Goldilocks2::fromU64(tmp);
+void MultilinearPolynomial::set_value(const std::string& mask, const Goldilocks2::Element& c){
+    evaluations[convert_mask_to_u64(mask, num_vars)] = c;
 }
 
-Goldilocks2::Element MultilinearPolynomial::get_term(uint64_t mask) const{
-    return coeffs[mask];
+void MultilinearPolynomial::set_value(const std::string& mask, const uint64_t& c){
+    evaluations[convert_mask_to_u64(mask, num_vars)] = Goldilocks2::fromU64(c);
+}
+
+Goldilocks2::Element MultilinearPolynomial::eval_hypercube(uint64_t mask) const{
+    return evaluations[mask];
 }
 
 Goldilocks2::Element MultilinearPolynomial::evaluate(const std::vector<Goldilocks2::Element>& point) const{
-    Goldilocks2::Element result = Goldilocks2::zero();
-    for (uint64_t mask = 0; mask < coeffs.size(); ++mask) {
-        Goldilocks2::Element term = coeffs[mask];
-        for (size_t i = 0; i < num_vars; ++i) {
-            if ((mask >> i) & 1) {
-                // term *= point[i];
-                Goldilocks2::mul(term, term, point[num_vars - i - 1]);
-            }
+    // for denote purpose
+    const std::vector<Goldilocks2::Element>& r = point;
+    std::vector<Goldilocks2::Element> one_minus_r(num_vars);
+    for (size_t i = 0; i < num_vars; ++i){
+        Goldilocks2::sub(one_minus_r[i], Goldilocks2::one(), r[i]);
+    }
+
+    // construct lagrage bases
+    std::vector<Goldilocks2::Element> lag_basis;
+    lag_basis.resize(1ull << num_vars, Goldilocks2::one());
+    // every round add a new bit to the highest digit, so the reversed ri should be utilized
+    for(uint64_t i = 0;i < num_vars; ++i){
+        for(uint64_t j = 0;j < (1ull << i); ++j){
+            Goldilocks2::mul(lag_basis[j + (1ull << i)], lag_basis[j], r[num_vars - i - 1]);
+            Goldilocks2::mul(lag_basis[j], lag_basis[j], one_minus_r[num_vars - i - 1]);
         }
-        // result += term;
-        Goldilocks2::add(result, result, term);
+    }
+
+    Goldilocks2::Element result = Goldilocks2::zero();
+    // directly uses lagrange bases rather than creates a new tmp var
+    for (size_t i = 0; i < lag_basis.size(); ++i) {
+        // Goldilocks2::Element tmp;
+        Goldilocks2::mul(lag_basis[i], lag_basis[i], evaluations[i]);
+        Goldilocks2::add(result, result, lag_basis[i]);
     }
     return result;
+}
+
+MultilinearPolynomial MultilinearPolynomial::operator+(const MultilinearPolynomial& g) const{
+    assert(num_vars == g.get_num_vars());
+    std::vector<Goldilocks2::Element> evs(evaluations.size()), evalg = g.get_eval_table();
+    for(size_t i = 0;i < evaluations.size(); ++i){
+        Goldilocks2::add(evs[i], evaluations[i], evalg[i]);
+    }
+    return MultilinearPolynomial(evs);
+}
+
+
+MultilinearPolynomial MultilinearPolynomial::operator-(const MultilinearPolynomial& g) const{
+    assert(num_vars == g.get_num_vars());
+    std::vector<Goldilocks2::Element> evs(evaluations.size()), evalg = g.get_eval_table();
+    for(size_t i = 0;i < evaluations.size(); ++i){
+        Goldilocks2::sub(evs[i], evaluations[i], evalg[i]);
+    }
+    return MultilinearPolynomial(evs);
 }

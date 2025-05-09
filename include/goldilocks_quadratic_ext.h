@@ -63,12 +63,18 @@ public:
             Goldilocks::copy((*dst)[i], (*src)[i]);
         }
     };
-    static inline Element fromU64(uint64_t in1[FIELD_EXTENSION]){
+    static inline Element fromU64(const uint64_t in1[FIELD_EXTENSION]){
         Element result;
         Goldilocks2::fromU64(result, in1);
         return result;
     }
-    static inline void fromU64(Element &result, uint64_t in1[FIELD_EXTENSION])
+    static inline Element fromU64(const uint64_t& in1){
+        Element result;
+        uint64_t arr[] = {in1, 0};
+        Goldilocks2::fromU64(result, arr);
+        return result;
+    }
+    static inline void fromU64(Element &result,const uint64_t in1[FIELD_EXTENSION])
     {
         for (uint64_t i = 0; i < FIELD_EXTENSION; i++)
         {

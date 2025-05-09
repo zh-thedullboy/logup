@@ -50,6 +50,11 @@
         "streambuf": "cpp",
         "typeinfo": "cpp",
         "mle.h": "c",
-        "mle_sumcheck.h": "c"
-    }
+        "mle_sumcheck.h": "c",
+        "mt_crypto.h": "c",
+        "strstream": "cpp",
+        "cinttypes": "cpp",
+        "header": "cpp"
+    },
+    "C_Cpp.default.compilerPath": "/usr/bin/g++"
 }
