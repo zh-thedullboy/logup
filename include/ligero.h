@@ -4,13 +4,15 @@
 #include <cstdint>
 #include <vector>
 #include "merkle.h"
+#include <memory>
 #include <random>
 
 class ligeroProver;
 
 typedef struct{
     MerkleTree::Digest mthash;
-    const ligeroProver& prover;
+    // const ligeroProver& prover;
+    std::shared_ptr<ligeroProver> prover;
     size_t num_rows;
     size_t num_cols;
 }ligeropcs;
@@ -37,10 +39,7 @@ private:
     MerkleTree mt_t;
 };
 
-
-
 class ligeroVerifier{
-
 public:
     // check if some commit is valid ligero commit
     static bool check_commit(const ligeropcs& pcs);

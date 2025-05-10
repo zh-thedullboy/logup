@@ -16,27 +16,6 @@ pProver::pProver(const MultilinearPolynomial& p1, const MultilinearPolynomial& p
 */
 void pProver::initialize(){
     uint64_t tsize = 1ull << p1.get_num_vars();
-    // keepTablep1.resize(tsize, Goldilocks2::zero());
-    // keepTablep2.resize(tsize, Goldilocks2::zero());
-    // keepTablep3.resize(tsize, Goldilocks2::zero());
-
-    // for (uint64_t mask = 0; mask < tsize; ++mask) {
-    //     keepTablep1[mask] = p1.eval_hypercube(mask);
-    //     keepTablep2[mask] = p2.eval_hypercube(mask);
-    //     keepTablep3[mask] = p3.eval_hypercube(mask);
-    // }
-
-    // for (uint64_t i = 0; i < p1.get_num_vars(); ++i) {
-    //     for (uint64_t mask = 0; mask < tsize; ++mask) {
-    //         if ((mask & (1ull << i)) == 0) {
-    //             uint64_t superset = mask | (1ull << i);
-    //             Goldilocks2::add(keepTablep1[superset], keepTablep1[superset], keepTablep1[mask]);
-    //             Goldilocks2::add(keepTablep2[superset], keepTablep2[superset], keepTablep2[mask]);
-    //             Goldilocks2::add(keepTablep3[superset], keepTablep3[superset], keepTablep3[mask]);
-    //         }
-    //     }
-    // }
-
 
     keepTablep1 = p1.get_eval_table();
     keepTablep2 = p2.get_eval_table();
@@ -157,7 +136,10 @@ inline void pVerifier::interpolate_3(Goldilocks2::Element& fr,const Goldilocks2:
 }
 
 bool pVerifier::execute_sumcheck(pProver& pr, const Oracle& oracle){
-    // pr.initialize();
+    if(!ligeroVerifier::check_commit(oracle[0])) return false;
+    if(!ligeroVerifier::check_commit(oracle[1])) return false;
+    if(!ligeroVerifier::check_commit(oracle[2])) return false;
+
     Goldilocks2::Element sum = pr.get_sum();
     size_t nrnd = pr.get_rounds();
     std::vector<Goldilocks2::Element> challenges;
@@ -183,7 +165,63 @@ bool pVerifier::execute_sumcheck(pProver& pr, const Oracle& oracle){
             // final check
             if(round == nrnd){
                 challenges.push_back(challenge());
-                Goldilocks2::Element f_r = mul(oracle[0].evaluate(challenges), oracle[1].evaluate(challenges), oracle[2].evaluate(challenges));
+                
+                Goldilocks2::Element f_r = mul(ligeroVerifier::open(oracle[0], challenges), ligeroVerifier::open(oracle[1], challenges), ligeroVerifier::open(oracle[2], challenges));
+                Goldilocks2::Element slrl;
+                Goldilocks2::Element rl = challenges[round - 1];
+                interpolate_3(slrl, rl, si[0], si[1], si[2], si[3]);
+                if(!(slrl == f_r)) return false;
+            }
+        }
+
+        challenges.push_back(challenge());
+        // goto next round
+        si1 = si;
+    }
+    return true;
+}
+
+bool pVerifier::execute_logup_sumcheck(pProver& pr,
+const MultilinearPolynomial& eqr, const ligeropcs& frac,
+const ligeropcs& p1, const ligeropcs& p2,
+const Goldilocks2::Element gamma, const Goldilocks2::Element labmda){
+
+    Goldilocks2::Element sum = pr.get_sum();
+    size_t nrnd = pr.get_rounds();
+    std::vector<Goldilocks2::Element> challenges;
+
+    // s_{i - 1}
+    std::array<Goldilocks2::Element, 4> si1;
+    for(int round = 1;round <= nrnd; ++round){
+        // s_i
+        std::array<Goldilocks2::Element, 4> si;    
+        si = pr.send_message(round, challenges);
+        // s(0) + s(1)
+        Goldilocks2::Element ss;
+        Goldilocks2::add(ss, si[0], si[1]);
+        if(round == 1){
+            if(!(ss == sum)) return false;
+        }
+        else{
+            Goldilocks2::Element sr;
+            Goldilocks2::Element r = challenges[round - 2];
+            interpolate_3(sr, r, si1[0], si1[1], si1[2], si1[3]);
+            if(!(sr == ss)) return false;
+
+            // final check, different from general product sumcheck
+            if(round == nrnd){
+                challenges.push_back(challenge());
+
+                // f(r) from the oracle and the information hold by the verifier
+                Goldilocks2::Element third_term;
+                Goldilocks2::Element tmp;
+                Goldilocks2::mul(tmp, labmda, ligeroVerifier::open(p2, challenges));
+                Goldilocks2::sub(third_term, gamma, ligeroVerifier::open(p1, challenges));
+                Goldilocks2::sub(third_term, third_term, tmp);
+                Goldilocks2::Element f_r = mul(eqr.evaluate(challenges), ligeroVerifier::open(frac, challenges), third_term);
+
+
+                // f(r) from the previous rounds
                 Goldilocks2::Element slrl;
                 Goldilocks2::Element rl = challenges[round - 1];
                 interpolate_3(slrl, rl, si[0], si[1], si[2], si[3]);

@@ -2,6 +2,7 @@
 
 #include "mle.h"
 #include "goldilocks_quadratic_ext.h"
+#include "ligero.h"
 #include <vector>
 #include <array>
 
@@ -22,7 +23,7 @@ private:
 class sVerifier{
 public:
     // should be replaced with a pcs
-    typedef MultilinearPolynomial Oracle;
+    typedef ligeropcs Oracle;
     static bool execute_sumcheck(sProver& pr, const Oracle& oracle);
 private:
     static Goldilocks2::Element challenge();

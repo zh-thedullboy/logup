@@ -41,6 +41,7 @@ ligeroProver::ligeroProver(const MultilinearPolynomial& w, const double& rho):ml
 
 std::vector<Goldilocks2::Element> ligeroProver::lincomb(const std::vector<Goldilocks2::Element>& r) const{
     assert(r.size() == a);
+    // std::cout << r.size() << '\n' << a << '\n';
     std::vector<Goldilocks2::Element> v(b, Goldilocks2::zero());
     std::vector<Goldilocks2::Element> evals = mle.get_eval_table();
     for(size_t j = 0; j < a; ++j){
@@ -63,7 +64,7 @@ std::vector<MerkleTree::MTPayload> ligeroProver::open_cols(const std::vector<siz
 }
 
 ligeropcs ligeroProver::commit() const{
-    return {mt_t.MerkleCommit(), *this, a, b};
+    return {mt_t.MerkleCommit(), std::make_shared<ligeroProver>(*this), a, b};
 }
 
 std::mt19937_64 ligeroVerifier::gen(std::random_device{}());
@@ -84,7 +85,7 @@ std::vector<Goldilocks2::Element> ligeroVerifier::randvec(const uint64_t& n){
 
 std::vector<size_t> ligeroVerifier::randindexes(const uint64_t& n, const size_t& bound){
     static std::mt19937 _gen(std::random_device{}());
-    static std::uniform_int_distribution<size_t> _dist(0, bound - 1);
+    std::uniform_int_distribution<size_t> _dist(0, bound - 1);
     std::vector<size_t> rands;
     rands.reserve(n);
     for (uint64_t i = 0; i < n; ++i) {
@@ -94,12 +95,12 @@ std::vector<size_t> ligeroVerifier::randindexes(const uint64_t& n, const size_t&
 }
 
 bool ligeroVerifier::check_lincomb(const ligeropcs& pcs, const std::vector<Goldilocks2::Element>& r , const std::vector<Goldilocks2::Element>& comb){
-    const ligeroProver &prover = pcs.prover;
+    const ligeroProver &prover = *pcs.prover;
     // 要 t 个 column   !!!t要改成 \theta(\lambda)
     size_t t = 5;
     std::vector<size_t> indexes = randindexes(t, std::ceil(pcs.num_cols / prover.rho));
+    // std::vector<size_t> indexes = {7, 7, 7, 7, 7};
 
-    // 看对应entry 对不对
     std::vector<MerkleTree::MTPayload> openings = prover.open_cols(indexes);
     for(auto opening: openings){
         // check if this opening is right
@@ -122,11 +123,9 @@ bool ligeroVerifier::check_lincomb(const ligeropcs& pcs, const std::vector<Goldi
 }
 
 bool ligeroVerifier::check_commit(const ligeropcs& pcs){
-    const ligeroProver& prover = pcs.prover; 
+    const ligeroProver& prover = *pcs.prover; 
     std::vector<Goldilocks2::Element> r = randvec(pcs.num_rows);
-
     std::vector<Goldilocks2::Element> v = prover.lincomb(r);
-
     std::vector<Goldilocks2::Element> w = rsencode(v, prover.rho);
 
     return check_lincomb(pcs, r, w);
@@ -170,7 +169,7 @@ Goldilocks2::Element ligeroVerifier::open(const ligeropcs& pcs, const std::vecto
     std::vector<Goldilocks2::Element> L = lr[0];
     std::vector<Goldilocks2::Element> R = lr[1];
 
-    const ligeroProver &prover = pcs.prover;
+    const ligeroProver &prover = *pcs.prover;
     // v_prime for v', idealy we have E(v') = w', w' = R dot uhat
     std::vector<Goldilocks2::Element> v_prime = prover.lincomb(R);
 
@@ -188,7 +187,6 @@ std::array<std::vector<Goldilocks2::Element>, 2> ligeroVerifier::calculate_lr(co
     std::vector<Goldilocks2::Element> zh(z.begin(), z.begin() + a);
     // low bits of z
     std::vector<Goldilocks2::Element> zl(z.begin() + a, z.end());
-
 
     std::vector<Goldilocks2::Element> L = eq(b, zl).get_eval_table();
     std::vector<Goldilocks2::Element> R = eq(a, zh).get_eval_table();

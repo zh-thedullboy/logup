@@ -64,7 +64,7 @@ std::array<Goldilocks2::Element, 2> sProver::send_message(const size_t& round, c
 // sVerifier::sVerifier(){}
 
 bool sVerifier::execute_sumcheck(sProver& pr, const Oracle& oracle){
-    // pr.initialize();
+    if(!ligeroVerifier::check_commit(oracle)) return false;
     Goldilocks2::Element sum = pr.get_sum();
     size_t nrnd = pr.get_rounds();
     std::vector<Goldilocks2::Element> challenges;
@@ -97,8 +97,8 @@ bool sVerifier::execute_sumcheck(sProver& pr, const Oracle& oracle){
                 challenges.push_back(challenge());
                 // should be implemented later
                 // fr: f(r1, r2, ..., rl)
-                // Goldilocks2::Element f_r = query_oracle(oracle, challenges);
-                Goldilocks2::Element f_r = oracle.evaluate(challenges);
+                Goldilocks2::Element f_r = ligeroVerifier::open(oracle, challenges);
+
                 // std::cout << Goldilocks2::toString(f_r) << '\n';
                 // s_l(r_l)
                 Goldilocks2::Element slrl;
