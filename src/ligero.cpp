@@ -7,8 +7,6 @@
 #include <openssl/sha.h>
 #include <cassert>
 
-// g++ -std=c++17 -o test ../src/* ligero.cpp -lgoldilocks -L../goldilocks/ -I../include -I./goldilocks/src -lpthread -lgmp -mavx2 -fopenmp
-
 std::vector<Goldilocks2::Element> rsencode(const std::vector<Goldilocks2::Element> &data, const double& rho){
     size_t n = std::ceil(data.size() / rho);
     std::vector<Goldilocks2::Element> code;
@@ -197,20 +195,4 @@ std::array<std::vector<Goldilocks2::Element>, 2> ligeroVerifier::calculate_lr(co
 
     return {L, R};
 }
-#define debug
-#undef debug
-#ifdef debug
 
-int main(){
-    // std::vector<Goldilocks2::Element> r = {Goldilocks2::fromU64(4), Goldilocks2::fromU64(3), Goldilocks2::fromU64(2), Goldilocks2::one()}; 
-    // std::vector<Goldilocks2::Element> c = rsencode(r, 0.1);
-    // for(auto e : c){
-    //     std::cout << Goldilocks2::toString(e) << '\n';
-    // }
-
-    // double x = 11111.49;
-    // std::cout << std::nearbyint(x) << '\n';
-    // return 0;
-}
-
-#endif
