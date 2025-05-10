@@ -7,8 +7,9 @@
 #include <openssl/sha.h>
 #include <cassert>
 
-std::vector<Goldilocks2::Element> rsencode(const std::vector<Goldilocks2::Element> &data, const double& rho){
-    size_t n = std::ceil(data.size() / rho);
+
+std::vector<Goldilocks2::Element> rsencode(const std::vector<Goldilocks2::Element> &data, const uint64_t& rho_inv){
+    size_t n = data.size() * rho_inv;
     std::vector<Goldilocks2::Element> code;
     code.reserve(n);
     for(size_t i = 0; i < n; ++i){
@@ -17,7 +18,7 @@ std::vector<Goldilocks2::Element> rsencode(const std::vector<Goldilocks2::Elemen
     return code;
 }
 
-ligeroProver::ligeroProver(const MultilinearPolynomial& w, const double& rho):mle(w), rho(rho){
+ligeroProver::ligeroProver(const MultilinearPolynomial& w, const uint64_t& rho_inv):mle(w), rho_inv(rho_inv){
     // stevals = w.get_eval_table();
     std::vector<Goldilocks2::Element> evals = w.get_eval_table();
     size_t l = w.get_num_vars();
@@ -25,7 +26,7 @@ ligeroProver::ligeroProver(const MultilinearPolynomial& w, const double& rho):ml
     // 2^l = a * b
     a = 1ull << (l >> 1);       //floor(l/2)
     b = a << (l & 1);           //ceil(l/2)
-    codelen = std::ceil(b / rho);
+    codelen = b * rho_inv;
     std::vector<std::vector<Goldilocks2::Element>> beforerscode;
     for(size_t i = 0; i < a; ++i){
         std::vector<Goldilocks2::Element> dataline(b);
@@ -34,7 +35,7 @@ ligeroProver::ligeroProver(const MultilinearPolynomial& w, const double& rho):ml
             dataline[j] = evals[i * b + j];
         }
         beforerscode.push_back(dataline);
-        codewords.push_back(rsencode(dataline, rho));
+        codewords.push_back(rsencode(dataline, rho_inv));
     }
     mt_t = MerkleTree(codewords);
 }
@@ -94,17 +95,15 @@ std::vector<size_t> ligeroVerifier::randindexes(const uint64_t& n, const size_t&
     return rands;
 }
 
-bool ligeroVerifier::check_lincomb(const ligeropcs& pcs, const std::vector<Goldilocks2::Element>& r , const std::vector<Goldilocks2::Element>& comb){
+bool ligeroVerifier::check_lincomb(const ligeropcs& pcs, const std::vector<Goldilocks2::Element>& r , const std::vector<Goldilocks2::Element>& comb, const size_t& t){
     const ligeroProver &prover = *pcs.prover;
-    // 要 t 个 column   !!!t要改成 \theta(\lambda)
-    size_t t = 5;
-    std::vector<size_t> indexes = randindexes(t, std::ceil(pcs.num_cols / prover.rho));
+    std::vector<size_t> indexes = randindexes(t, std::ceil(pcs.num_cols / prover.rho_inv));
     // std::vector<size_t> indexes = {7, 7, 7, 7, 7};
 
     std::vector<MerkleTree::MTPayload> openings = prover.open_cols(indexes);
     for(auto opening: openings){
         // check if this opening is right
-        if(!MerkleTree::MerkleVerify(pcs.mthash, opening)) std::cout <<"got ya\n";
+        if(!MerkleTree::MerkleVerify(pcs.mthash, opening)) return false;
     }
 
     for(size_t k = 0;k < indexes.size(); ++k){
@@ -122,13 +121,13 @@ bool ligeroVerifier::check_lincomb(const ligeropcs& pcs, const std::vector<Goldi
     return true;
 }
 
-bool ligeroVerifier::check_commit(const ligeropcs& pcs){
+bool ligeroVerifier::check_commit(const ligeropcs& pcs, const size_t& sec_param){
     const ligeroProver& prover = *pcs.prover; 
     std::vector<Goldilocks2::Element> r = randvec(pcs.num_rows);
     std::vector<Goldilocks2::Element> v = prover.lincomb(r);
-    std::vector<Goldilocks2::Element> w = rsencode(v, prover.rho);
-
-    return check_lincomb(pcs, r, w);
+    std::vector<Goldilocks2::Element> w = rsencode(v, prover.rho_inv);
+    size_t t = calculate_t(sec_param, prover.rho_inv, prover.codelen, FIELD_BITS);
+    return check_lincomb(pcs, r, w, t);
 }
 
 // maybe can be moved to util?
@@ -163,8 +162,7 @@ Goldilocks2::Element dot_product(const std::vector<Goldilocks2::Element> &b, con
     return res;
 }
 
-Goldilocks2::Element ligeroVerifier::open(const ligeropcs& pcs, const std::vector<Goldilocks2::Element> &z){
-    // 自己算L和R
+Goldilocks2::Element ligeroVerifier::open(const ligeropcs& pcs, const std::vector<Goldilocks2::Element> &z,  const size_t& sec_param){
     std::array<std::vector<Goldilocks2::Element>, 2> lr = calculate_lr(z.size(), z);
     std::vector<Goldilocks2::Element> L = lr[0];
     std::vector<Goldilocks2::Element> R = lr[1];
@@ -173,8 +171,9 @@ Goldilocks2::Element ligeroVerifier::open(const ligeropcs& pcs, const std::vecto
     // v_prime for v', idealy we have E(v') = w', w' = R dot uhat
     std::vector<Goldilocks2::Element> v_prime = prover.lincomb(R);
 
-    std::vector<Goldilocks2::Element> w_prime = rsencode(v_prime, prover.rho);
-    assert(check_lincomb(pcs, R, w_prime));
+    std::vector<Goldilocks2::Element> w_prime = rsencode(v_prime, prover.rho_inv);
+    size_t t = calculate_t(sec_param, prover.rho_inv, prover.codelen, FIELD_BITS);
+    assert(check_lincomb(pcs, R, w_prime, t));
 
     return dot_product(v_prime, L);
 }
@@ -194,3 +193,21 @@ std::array<std::vector<Goldilocks2::Element>, 2> ligeroVerifier::calculate_lr(co
     return {L, R};
 }
 
+size_t ligeroVerifier::calculate_t(
+    const size_t& sec_param,
+    const uint64_t& rho_inv,
+    const size_t& codeword_len,
+    const size_t& field_bits
+) {
+    // residual = n / 2^field_bits
+    double residual = static_cast<double>(codeword_len) / std::pow(2.0, field_bits);
+
+    double pr = std::pow(2.0, -static_cast<int>(sec_param));
+    // unless target sec level can't be achieved
+    assert(pr > residual);
+
+    double numerator = std::log2(pr - residual) - 1;
+    double denominator = std::log2((1.0 + 1.0 / static_cast<double>(rho_inv)) * 0.5);
+    size_t t = static_cast<size_t>(std::ceil(numerator / denominator));
+    return std::min(t, codeword_len);
+}

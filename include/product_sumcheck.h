@@ -34,13 +34,13 @@ class pVerifier{
 public:
     // should be replaced with a pcs
     typedef std::array<ligeropcs, 3> Oracle;
-    static bool execute_sumcheck(pProver& pr, const Oracle& oracle);
+    static bool execute_sumcheck(pProver& pr, const Oracle& oracle, const size_t& sec_param);
 
     // customized sumcheck for \Sigma eq * frac * (gamma - p1 - lambda * p2)
     static bool execute_logup_sumcheck(pProver& pr,
         const MultilinearPolynomial& eqr, const ligeropcs& frac,
         const ligeropcs& p1, const ligeropcs& p2,
-        const Goldilocks2::Element gamma, const Goldilocks2::Element labmda);
+        const Goldilocks2::Element gamma, const Goldilocks2::Element labmda, const size_t& sec_param);
 private:
     static Goldilocks2::Element challenge();
     static inline Goldilocks2::Element mul(const Goldilocks2::Element& e1, const  Goldilocks2::Element& e2, const  Goldilocks2::Element& e3, const  Goldilocks2::Element& e4, const  Goldilocks2::Element& e5);

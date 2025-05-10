@@ -29,17 +29,16 @@ public:
     LogupProver(const table& f1, const table& f2, const table& t1, const table& t2);
     void calculate_multiplicities();
     void calculate_gh(const Goldilocks2::Element& gamma, const Goldilocks2::Element& lambda);
-    LogupDef::pcs commit_c();
-    std::array<LogupDef::pcs, 4> commit_ft();
-    std::array<LogupDef::pcs, 2> commit_gh();
-    std::array<LogupDef::pcs, 2> commit_denom();
+    LogupDef::pcs commit_c(const uint64_t& rho_inv);
+    std::array<LogupDef::pcs, 4> commit_ft(const uint64_t& rho_inv);
+    std::array<LogupDef::pcs, 2> commit_gh(const uint64_t& rho_inv);
     std::array<sProver, 2> firstProvers();
     std::array<pProver, 2> secondProvers(const std::vector<Goldilocks2::Element>& rg, const std::vector<Goldilocks2::Element>& rh);
 };
 
 class LogupVerifier{
 public:
-    static bool execute_logup(LogupProver& lpr);
+    static bool execute_logup(LogupProver& lpr, const uint64_t& rho_inv, const size_t& sec_param);
 private:
     static std::mt19937_64 gen;
     static std::uniform_int_distribution<uint64_t> dist;
