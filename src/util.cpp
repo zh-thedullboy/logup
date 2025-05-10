@@ -7,6 +7,7 @@
 #include "util.h"
 #include <functional>
 #include <array>
+#include <algorithm>
 
 uint64_t convert_mask_to_u64(const std::string& mask, const size_t &nvar) {
     assert(nvar >= mask.length());
@@ -28,6 +29,10 @@ int find_ceiling_log2(const uint64_t& n) {
         }
     }
     return 64;
+}
+
+bool is_power_of_2(const uint64_t& n){
+    return n != 0 && (n & (n - 1)) == 0;
 }
 
 
@@ -83,6 +88,13 @@ void print_table(const std::vector<Goldilocks2::Element>& table){
     std::cout << '\n';
 }
 
+void print_table(const std::vector<Goldilocks::Element>& table){
+    for(auto e: table){
+        std::cout << Goldilocks::toString(e) << ' ';
+    }
+    std::cout << '\n';
+}
+
 void print_table(const std::vector<size_t>& table){
     for(auto e: table){
         std::cout << e << ' ';
@@ -114,6 +126,64 @@ Goldilocks2::Element Horner(const std::vector<Goldilocks2::Element> &coefs, cons
         Goldilocks2::add(res, res, coefs[i - 1]);
     }
     return res;
+}
+
+std::vector<Goldilocks::Element> NTT(const std::vector<Goldilocks::Element>& coefs){
+    if (coefs.size() == 1) return coefs;
+
+    const size_t n = coefs.size();
+    const size_t m = find_ceiling_log2(n);
+
+    // calculate f1, f2;
+    std::vector<Goldilocks::Element> even(n >> 1), odd(n >> 1);
+    for(size_t i = 0;i < n; ++i){
+        if (i & 1) odd[i >> 1] = coefs[i];
+        else even[i >> 1] = coefs[i];
+    }
+    std::vector<Goldilocks::Element> f1 = NTT(even);
+    std::vector<Goldilocks::Element> f2 = NTT(odd);
+
+    std::vector<Goldilocks::Element> f(n);
+    const size_t offset = n >> 1;
+    Goldilocks::Element wn = Goldilocks::one();
+    // traverse and calculate f
+    for (size_t i = 0; i < offset; ++i){
+        f[i] = f1[i] + Goldilocks::mul(wn, f2[i]);
+        f[i + offset] = f1[i] - Goldilocks::mul(wn, f2[i]);
+        Goldilocks::mul(wn, wn, ROOTS[m]);
+    }
+
+    return f;
+}
+
+size_t highest_bit_mask(const size_t& n){
+    size_t mask = SIZE_MAX;
+    while(mask != 0){
+        if(mask & n) return mask;
+        mask = mask >> 1;
+    }
+    return 0;
+}
+
+std::vector<Goldilocks::Element> eval_with_ntt(std::vector<Goldilocks::Element> f, const size_t& N){
+    std::reverse(f.begin(), f.end());
+    if(!is_power_of_2(N)){
+        size_t padded_N = highest_bit_mask(N) << 1;
+        f.resize(padded_N, Goldilocks::zero());
+        std::vector<Goldilocks::Element> raw_output = NTT(f);
+        raw_output.resize(N);
+        return raw_output;
+    }
+    f.resize(N, Goldilocks::zero());
+    return NTT(f);
+}
+
+std::vector<Goldilocks::Element> eval_with_ntt(std::vector<Goldilocks2::Element> f, const size_t& N){
+    std::vector<Goldilocks::Element> base_field_copy(f.size());
+    for(size_t i = 0; i < f.size(); ++i){
+        base_field_copy[i] = f[i][0];
+    }
+    return eval_with_ntt(base_field_copy, N);
 }
 
 // g++ -o test util.cpp -I../include -lpthread -lgmp

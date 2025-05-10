@@ -23,8 +23,6 @@ private:
     std::optional<MultilinearPolynomial> polyg, polyh;
     // intermediate tables used for last 2 sumchecks
     table denomg, denomh;
-    // std::optional<sProver> sp;
-    // std::optional<pProver> pp;
 public:
     LogupProver(const table& f1, const table& f2, const table& t1, const table& t2);
     void calculate_multiplicities();

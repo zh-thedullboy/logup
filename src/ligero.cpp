@@ -16,6 +16,8 @@ std::vector<Goldilocks2::Element> rsencode(const std::vector<Goldilocks2::Elemen
         code.push_back(Horner(data, Goldilocks2::fromU64(i)));
     }
     return code;
+
+    // return eval_with_ntt(data, data.size() * rho_inv);
 }
 
 ligeroProver::ligeroProver(const MultilinearPolynomial& w, const uint64_t& rho_inv):mle(w), rho_inv(rho_inv){
@@ -164,6 +166,7 @@ Goldilocks2::Element dot_product(const std::vector<Goldilocks2::Element> &b, con
 
 Goldilocks2::Element ligeroVerifier::open(const ligeropcs& pcs, const std::vector<Goldilocks2::Element> &z,  const size_t& sec_param){
     std::array<std::vector<Goldilocks2::Element>, 2> lr = calculate_lr(z.size(), z);
+    
     std::vector<Goldilocks2::Element> L = lr[0];
     std::vector<Goldilocks2::Element> R = lr[1];
 
