@@ -131,7 +131,7 @@ std::array<pProver, 2> LogupProver::secondProvers(const std::vector<Goldilocks2:
 
 
 std::mt19937_64 LogupVerifier::gen(std::random_device{}());
-std::uniform_int_distribution<uint64_t> LogupVerifier::dist(0, Goldilocks2::p - 1); // 根据你需要的分布设置范围
+std::uniform_int_distribution<uint64_t> LogupVerifier::dist(0, Goldilocks2::p - 1);
 
 
 bool LogupVerifier::execute_logup(LogupProver& lpr){
@@ -185,7 +185,7 @@ bool LogupVerifier::execute_logup(LogupProver& lpr){
 }
     
 Goldilocks2::Element LogupVerifier::randnum(){
-    return Goldilocks2::fromU64(dist(gen));
+    return {Goldilocks::fromU64(dist(gen)), Goldilocks::fromU64(dist(gen))};
 }
 
 std::vector<Goldilocks2::Element> LogupVerifier::randvec(const uint64_t& n){

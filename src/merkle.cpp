@@ -70,34 +70,18 @@ MerkleTree::MerkleTree(const std::vector<std::vector<Goldilocks2::Element>> &dat
     }
 }
 
-MerkleTree::MTProof MerkleTree::MerkleOpen(const size_t& idx) const{
-    // also includes the node idx itself, getting rid of the need to specify left/right
-    // size_t layers = find_ceiling_log2(T.size());
-    // MTPath path(layers);
-    // std::array<col_t, 2> proofs_col;
-    // // keep left and right
-    // // 0 for left child, 1 for right child
-    // proofs_col[0] = cols[idx & ~1];     // 保证 leaf_col[0] 是左节点
-    // proofs_col[1] = cols[idx | 1];      // leaf_col[1] 是右节点
+MerkleTree::MTPayload MerkleTree::MerkleOpen(const size_t& idx) const{
     size_t index = leaf_offset + idx;
-    // size_t i = 0;
-
     MTPath path;
     while(index != 1){
-        // even for left child, odd for right child
-        // path[i] = T[index & ~1];
-        // path[i + 1] = T[idx | 1];
-        // index = index >> 1;
-        // i += 2;
-
         size_t sibling = (index ^ 1);
         path.push_back(T[sibling]);
         index >>= 1;
     }
-    return MTProof{path, cols[idx], idx + leaf_offset};
+    return MTPayload{path, cols[idx], idx + leaf_offset};
 }
 
-inline bool MerkleTree::MerkleVerify(const Digest& root, const MTProof& proof, const col_t& col){
+bool MerkleTree::MerkleVerify(const Digest& root, const MTPayload& payload){
     // Digest hashc = hash_column(col);
     // Digest hashl = hash_column(proof.leaf_col[0]);
     // Digest hashr = hash_column(proof.leaf_col[1]);
@@ -118,11 +102,11 @@ inline bool MerkleTree::MerkleVerify(const Digest& root, const MTProof& proof, c
     // }
     // if(hash_node(proof.path[i - 2], proof.path[i - 1]) != root) return false;
     // return true;
-    
+    col_t col =payload.column;
     Digest hash = hash_column(col);
-    size_t index = proof.index;
+    size_t index = payload.index;
 
-    for (const Digest& sibling : proof.path) {
+    for (const Digest& sibling : payload.path) {
         if ((index & 1) == 0) {
             // this is left child
             hash = hash_node(hash, sibling);

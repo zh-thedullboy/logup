@@ -41,6 +41,7 @@ MultilinearPolynomial eq(const size_t& num_var, const std::vector<Goldilocks2::E
     for(uint64_t i = 0;i < num_var; ++i){
         // Goldilocks2::sub(one_minus_r[i], Goldilocks2::one(), r[i]);
         for(uint64_t j = 0;j < (1ull << i); ++j){
+            // for r: low index corresponds with high bit
             Goldilocks2::mul(evaluations[j + (1ull << i)], evaluations[j], r[num_var - i - 1]);
             Goldilocks2::mul(evaluations[j], evaluations[j], one_minus_r[num_var - i - 1]);
         }

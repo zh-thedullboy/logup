@@ -8,3 +8,4 @@
 #include "util.h"
 #include "logup.h"
 #include "merkle.h"
+#include "ligero.h"

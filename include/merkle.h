@@ -22,15 +22,16 @@ public:
         col_t column;
         // this is index in the tree, not matrix!!
         size_t index;
-    }MTProof;
+    }MTPayload;
 
 private:
     MTtree T;
     size_t leaf_offset;
     std::vector<col_t> cols;
 public:
+    MerkleTree(){};
     MerkleTree(const std::vector<std::vector<Goldilocks2::Element>> &data);
-    MTProof MerkleOpen(const size_t& idx) const;
+    MTPayload MerkleOpen(const size_t& idx) const;
     Digest MerkleCommit() const {return T[1];}
-    static inline bool MerkleVerify(const Digest& root, const MTProof& proof, const col_t& col);
+    static bool MerkleVerify(const Digest& root, const MTPayload& payload);
 };

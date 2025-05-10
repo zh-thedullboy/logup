@@ -23,6 +23,7 @@ void print_table(const std::vector<Goldilocks2::Element>& table);
 void print_table(const std::vector<size_t>& table);
 
 void print_hash(const std::array<uint8_t, 32>& hash);
+
 void print_bytes(const std::array<uint8_t, 16>& hash);
 
 // evaluate a polynomial with its coefficients known as coefs at point x with Horners method
