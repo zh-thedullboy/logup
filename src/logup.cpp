@@ -14,6 +14,39 @@ LogupProver::LogupProver(const table_base& f1, const table_base& f2, const table
 }
 
 // 一定要用哈希表吗
+// void LogupProver::calculate_multiplicities(){
+//     size_t n = f1.size();
+//     size_t m = t1.size();
+//     assert(n == f2.size());
+//     assert(m == t2.size());
+
+//     // table c;
+//     std::vector<size_t> c1,c2;
+//     std::unordered_map<Goldilocks::Element, size_t> freq_map1, freq_map2;
+//     for (size_t i = 0;i < n; ++i){
+//         freq_map1[f1[i]]++;
+//         freq_map2[f2[i]]++;
+//     }
+//     c1.reserve(t1.size());
+//     c2.reserve(t2.size());
+//     for(size_t i = 0;i < m; ++i){
+//         c1.push_back(freq_map1[t1[i]]);
+//         c2.push_back(freq_map2[t2[i]]);
+//     }
+    
+//     assert(c1 == c2);
+//     c.reserve(c1.size());
+//     for (size_t i = 0;i < c1.size(); ++i){
+//         c.push_back(Goldilocks::fromU64(c1[i]));
+//     }
+    
+//     // print_table(t1);
+//     // print_table(t2);
+//     // print_table(f1);
+//     // print_table(f2);
+//     // print_table(c);
+//     // return MultilinearPolynomial(c);
+// }
 void LogupProver::calculate_multiplicities(){
     size_t n = f1.size();
     size_t m = t1.size();
@@ -21,24 +54,24 @@ void LogupProver::calculate_multiplicities(){
     assert(m == t2.size());
 
     // table c;
-    std::vector<size_t> c1,c2;
-    std::unordered_map<Goldilocks::Element, size_t> freq_map1, freq_map2;
+    std::vector<size_t> c1;
+    std::unordered_map<uint64_t, size_t> freq_map1, freq_map2;
     for (size_t i = 0;i < n; ++i){
         freq_map1[f1[i]]++;
         freq_map2[f2[i]]++;
     }
     c1.reserve(t1.size());
-    c2.reserve(t2.size());
+    c.reserve(t2.size());
     for(size_t i = 0;i < m; ++i){
         c1.push_back(freq_map1[t1[i]]);
-        c2.push_back(freq_map2[t2[i]]);
+        c.push_back(freq_map2[t2[i]]);
     }
     
-    assert(c1 == c2);
-    c.reserve(c1.size());
-    for (size_t i = 0;i < c1.size(); ++i){
-        c.push_back(Goldilocks::fromU64(c1[i]));
-    }
+    assert(c1 == c);
+    // c.reserve(c1.size());
+    // for (size_t i = 0;i < c1.size(); ++i){
+    //     c.push_back(Goldilocks::fromU64(c1[i]));
+    // }
     
     // print_table(t1);
     // print_table(t2);

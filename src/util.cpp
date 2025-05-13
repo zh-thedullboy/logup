@@ -81,6 +81,16 @@ std::vector<Goldilocks::Element> random_vec_base(const size_t& n){
     return vec;
 }
 
+std::vector<uint64_t> random_vec_uint(const size_t& n){
+    srand(time(nullptr));
+    std::vector<uint64_t> vec;
+    vec.reserve(n);
+    for(size_t i = 0;i < n; ++i){
+        vec.push_back(rand() % RAND_MAX);
+    }
+    return vec;
+}
+
 std::vector<Goldilocks2::Element> random_vec_ext(const size_t& n){
     srand(time(nullptr));
     std::vector<Goldilocks2::Element> vec;

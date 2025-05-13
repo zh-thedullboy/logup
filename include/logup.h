@@ -17,7 +17,8 @@ namespace LogupDef{
 
 class LogupProver{
 public:
-    using table_base = std::vector<Goldilocks::Element>;
+    // using table_base = std::vector<Goldilocks::Element>;
+    using table_base = std::vector<uint64_t>;
     using table_ext = std::vector<Goldilocks2::Element>;
     // should be replaced with a pcs
 private:

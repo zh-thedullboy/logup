@@ -56,6 +56,8 @@ void batch_inverse(std::vector<Goldilocks2::Element>& inv, const std::vector<Gol
 
 std::vector<Goldilocks::Element> random_vec_base(const size_t& n);
 
+std::vector<uint64_t> random_vec_uint(const size_t& n);
+
 std::vector<Goldilocks2::Element> random_vec_ext(const size_t& n);
 
 void print_table(const std::vector<Goldilocks2::Element>& table);
