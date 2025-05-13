@@ -28,12 +28,12 @@ ligeroProver::ligeroProver(const MultilinearPolynomial& w, const uint64_t& rho_i
     a = 1ull << (l >> 1);       //floor(l/2)
     b = a << (l & 1);           //ceil(l/2)
     codelen = b * rho_inv;
-    std::vector<std::vector<Goldilocks2::Element>> beforerscode;
+    std::vector<std::vector<Goldilocks::Element>> beforerscode;
     for(size_t i = 0; i < a; ++i){
-        std::vector<Goldilocks2::Element> dataline(b);
+        std::vector<Goldilocks::Element> dataline(b);
         for(size_t j = 0; j < b; ++j){
             // dataline.push_back(evals[i * b + j]);
-            dataline[j] = evals[i * b + j];
+            dataline[j] = evals[i * b + j][0];
         }
         beforerscode.push_back(dataline);
         codewords.push_back(rsencode(dataline, rho_inv));
@@ -50,7 +50,7 @@ std::vector<Goldilocks2::Element> ligeroProver::lincomb(const std::vector<Goldil
         Goldilocks2::Element tmp;
         size_t offset = j * b;
         for(size_t i = 0; i < b; ++i){
-            Goldilocks2::mul(tmp, r[j], evals[offset + i]);
+            Goldilocks2::mul(tmp, r[j], evals[offset + i][0]);
             Goldilocks2::add(v[i], v[i], tmp);
         }
     }

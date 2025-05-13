@@ -31,12 +31,13 @@ public:
     std::vector<MerkleTree::MTPayload> open_cols(const std::vector<size_t>& indexes) const; 
     
 private:
+    // mle is a multilinear polynomial whose evaluations over the hypercube are all base field elements 
     MultilinearPolynomial mle;
 
     // num of rows, columns;
     size_t a, b;
     // encoded matrix
-    std::vector<std::vector<Goldilocks2::Element>> codewords;
+    std::vector<std::vector<Goldilocks::Element>> codewords;
     // merkle hash tree of codewords
     MerkleTree mt_t;
 };
@@ -62,3 +63,4 @@ private:
 };
 
 std::vector<Goldilocks2::Element> rsencode(const std::vector<Goldilocks2::Element> &data, const uint64_t& rho_inv);
+std::vector<Goldilocks::Element> rsencode(const std::vector<Goldilocks::Element> &data, const uint64_t& rho_inv);
