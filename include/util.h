@@ -71,6 +71,8 @@ Goldilocks2::Element Horner(const std::vector<Goldilocks2::Element> &coefs, cons
 
 std::vector<Goldilocks::Element> eval_with_ntt(std::vector<Goldilocks::Element> f, const size_t& N);
 
+std::vector<Goldilocks2::Element> eval_with_ntt(std::vector<Goldilocks2::Element> f, const size_t& N);
+
 // returns vec on base field
 std::vector<Goldilocks::Element> eval_with_ntt_base(std::vector<Goldilocks2::Element> f, const size_t& N);
 

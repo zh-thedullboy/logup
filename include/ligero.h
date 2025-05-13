@@ -41,6 +41,7 @@ private:
     MerkleTree mt_t;
 };
 
+
 class ligeroVerifier{
 public:
     // check if some commit is valid ligero commit

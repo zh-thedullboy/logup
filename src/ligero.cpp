@@ -7,17 +7,16 @@
 #include <openssl/sha.h>
 #include <cassert>
 
+// reed solomon encode data on base field
+std::vector<Goldilocks::Element> rsencode(const std::vector<Goldilocks::Element> &data, const uint64_t& rho_inv){
+    // return eval_with_ntt_ext(data, data.size() * rho_inv);
+    return eval_with_ntt(data, data.size() * rho_inv);
+}
 
+// reed solomon encode data on quadratic extension field
+// this is simply encode real part and imaginary part respectively and merge the results
 std::vector<Goldilocks2::Element> rsencode(const std::vector<Goldilocks2::Element> &data, const uint64_t& rho_inv){
-    // size_t n = data.size() * rho_inv;
-    // std::vector<Goldilocks2::Element> code;
-    // code.reserve(n);
-    // for(size_t i = 0; i < n; ++i){
-    //     code.push_back(Horner(data, Goldilocks2::fromU64(i)));
-    // }
-    // return code;
-
-    return eval_with_ntt_ext(data, data.size() * rho_inv);
+    return eval_with_ntt(data, data.size() * rho_inv);
 }
 
 ligeroProver::ligeroProver(const MultilinearPolynomial& w, const uint64_t& rho_inv):mle(w), rho_inv(rho_inv){

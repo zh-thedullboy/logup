@@ -181,6 +181,29 @@ std::vector<Goldilocks::Element> eval_with_ntt(std::vector<Goldilocks::Element> 
     return NTT(f);
 }
 
+std::vector<Goldilocks2::Element> eval_with_ntt(std::vector<Goldilocks2::Element> f, const size_t& N){
+    std::reverse(f.begin(), f.end());
+
+    size_t N_used = is_power_of_2(N) ? N : highest_bit_mask(N) << 1;
+    f.resize(N_used, Goldilocks2::zero());
+
+    std::vector<Goldilocks::Element> real(f.size()), imag(f.size());
+    for(size_t i = 0; i < f.size(); ++i){
+        real[i] = f[i][0];
+        imag[i] = f[i][1];
+    }
+    
+    std::vector<Goldilocks::Element> real_ntt = NTT(real);
+    std::vector<Goldilocks::Element> imag_ntt = NTT(imag);
+
+    std::vector<Goldilocks2::Element> result(N);
+    for(size_t i = 0; i < N; ++i){
+        result[i][0] = real_ntt[i];
+        result[i][1] = imag_ntt[i];
+    }
+    return result;
+}
+
 std::vector<Goldilocks::Element> eval_with_ntt_base(std::vector<Goldilocks2::Element> f, const size_t& N){
     std::vector<Goldilocks::Element> base_field_copy(f.size());
     for(size_t i = 0; i < f.size(); ++i){
@@ -194,7 +217,7 @@ std::vector<Goldilocks2::Element> eval_with_ntt_ext(std::vector<Goldilocks2::Ele
     std::vector<Goldilocks2::Element> ext(base.size());
     for (size_t i = 0;i < base.size(); ++i){
         ext[i][0] = base[i];
-        ext[i][1] = base[i];
+        ext[i][1] = Goldilocks::zero();
     }
     return ext;
 }
