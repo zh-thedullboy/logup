@@ -167,6 +167,7 @@ size_t highest_bit_mask(const size_t& n){
 
 std::vector<Goldilocks::Element> eval_with_ntt(std::vector<Goldilocks::Element> f, const size_t& N){
     std::reverse(f.begin(), f.end());
+    // N is not power of 2, pad N and trim when return
     if(!is_power_of_2(N)){
         size_t padded_N = highest_bit_mask(N) << 1;
         f.resize(padded_N, Goldilocks::zero());
@@ -174,16 +175,28 @@ std::vector<Goldilocks::Element> eval_with_ntt(std::vector<Goldilocks::Element> 
         raw_output.resize(N);
         return raw_output;
     }
+
+    // N is power of 2
     f.resize(N, Goldilocks::zero());
     return NTT(f);
 }
 
-std::vector<Goldilocks::Element> eval_with_ntt(std::vector<Goldilocks2::Element> f, const size_t& N){
+std::vector<Goldilocks::Element> eval_with_ntt_base(std::vector<Goldilocks2::Element> f, const size_t& N){
     std::vector<Goldilocks::Element> base_field_copy(f.size());
     for(size_t i = 0; i < f.size(); ++i){
         base_field_copy[i] = f[i][0];
     }
     return eval_with_ntt(base_field_copy, N);
+}
+
+std::vector<Goldilocks2::Element> eval_with_ntt_ext(std::vector<Goldilocks2::Element> f, const size_t& N){
+    std::vector<Goldilocks::Element> base = eval_with_ntt_base(f, N);
+    std::vector<Goldilocks2::Element> ext(base.size());
+    for (size_t i = 0;i < base.size(); ++i){
+        ext[i][0] = base[i];
+        ext[i][1] = base[i];
+    }
+    return ext;
 }
 
 // g++ -o test util.cpp -I../include -lpthread -lgmp
