@@ -62,6 +62,28 @@ ligeroProver_base::ligeroProver_base(const std::vector<Goldilocks::Element>& w, 
     mt_t = MerkleTree_base(codewords);
 }
 
+ligeroProver_base::ligeroProver_base(const std::vector<uint64_t>& w, const uint64_t& rho_inv):rho_inv(rho_inv){
+    // stevals = w.get_eval_table();
+    size_t l = find_ceiling_log2(w.size());
+
+    // 2^l = a * b
+    a = 1ull << (l >> 1);       //floor(l/2)
+    b = a << (l & 1);           //ceil(l/2)
+    M.resize(1ull << l);
+    codelen = b * rho_inv;
+    // std::vector<std::vector<Goldilocks::Element>> beforerscode;
+    for(size_t i = 0; i < a; ++i){
+        std::vector<Goldilocks::Element> dataline(b);
+        for(size_t j = 0; j < b; ++j){
+            // dataline.push_back(evals[i * b + j]);
+            dataline[j] = M[i * b + j] = Goldilocks::fromU64(w[i * b + j]);
+        }
+        // beforerscode.push_back(dataline);
+        codewords.push_back(rsencode(dataline, rho_inv));
+    }
+    mt_t = MerkleTree_base(codewords);
+}
+
 std::vector<Goldilocks2::Element> ligeroProver_base::lincomb(const std::vector<Goldilocks2::Element>& r) const{
     assert(r.size() == a);
     // std::cout << r.size() << '\n' << a << '\n';
