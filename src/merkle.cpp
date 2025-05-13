@@ -34,18 +34,18 @@ std::array<uint8_t, 8> to_bytes(const Goldilocks::Element& e) {
 }
 
 // hash one column
-// MerkleTree::Digest hash_column(const std::vector<Goldilocks2::Element>& col){
-//     SHA256_CTX ctx;
-//     SHA256_Init(&ctx);
-//     std::array<uint8_t, SHA256_DIGEST_LENGTH> hash;
-//     // 16 for 2 * 64 / 8
-//     for(auto e: col) SHA256_Update(&ctx, to_bytes(e).data(), 16);
-//     SHA256_Final(hash.data(), &ctx);
-//     return hash;
-// }
+MerkleDef::Digest hash_column(const MerkleTree_ext::col_t& col){
+    SHA256_CTX ctx;
+    SHA256_Init(&ctx);
+    std::array<uint8_t, SHA256_DIGEST_LENGTH> hash;
+    // 16 for 2 * 64 / 8
+    for(auto e: col) SHA256_Update(&ctx, to_bytes(e).data(), 16);
+    SHA256_Final(hash.data(), &ctx);
+    return hash;
+}
 
 // hash the column
-MerkleTree::Digest hash_column(const MerkleTree::col_t& col){
+MerkleDef::Digest hash_column(const MerkleTree_base::col_t& col){
     SHA256_CTX ctx;
     SHA256_Init(&ctx);
     std::array<uint8_t, SHA256_DIGEST_LENGTH> hash;
@@ -56,7 +56,7 @@ MerkleTree::Digest hash_column(const MerkleTree::col_t& col){
 }
 
 // hash two child nodes
-MerkleTree::Digest hash_node(const std::array<uint8_t, SHA256_DIGEST_LENGTH>& l,const std::array<uint8_t, SHA256_DIGEST_LENGTH>& r){
+MerkleDef::Digest hash_node(const std::array<uint8_t, SHA256_DIGEST_LENGTH>& l,const std::array<uint8_t, SHA256_DIGEST_LENGTH>& r){
     SHA256_CTX ctx;
     SHA256_Init(&ctx);
     std::array<uint8_t, SHA256_DIGEST_LENGTH> hash;
@@ -67,7 +67,7 @@ MerkleTree::Digest hash_node(const std::array<uint8_t, SHA256_DIGEST_LENGTH>& l,
 }
 
 // construct the merkle hash tree from a matrix
-MerkleTree::MerkleTree(const std::vector<col_t> &data){
+MerkleTree_base::MerkleTree_base(const std::vector<col_t> &data){
     size_t num_cols = data[0].size();
     for(size_t i = 0; i < num_cols; ++i){
         col_t col(data.size());
@@ -78,7 +78,7 @@ MerkleTree::MerkleTree(const std::vector<col_t> &data){
     }
 
     // for clearer binary tree structure, index starts from 1 (T[0] is not used)
-    T = MTtree(num_cols << 1);
+    T = MerkleDef::MTtree(num_cols << 1);
     // MTtree mt_t(num_cols << 1);
     size_t loopN = find_ceiling_log2(num_cols);
     leaf_offset = 1ul << loopN;
@@ -94,9 +94,9 @@ MerkleTree::MerkleTree(const std::vector<col_t> &data){
     }
 }
 
-MerkleTree::MTPayload MerkleTree::MerkleOpen(const size_t& idx) const{
+MerkleTree_base::MTPayload MerkleTree_base::MerkleOpen(const size_t& idx) const{
     size_t index = leaf_offset + idx;
-    MTPath path;
+    MerkleDef::MTPath path;
     while(index != 1){
         size_t sibling = (index ^ 1);
         path.push_back(T[sibling]);
@@ -105,32 +105,12 @@ MerkleTree::MTPayload MerkleTree::MerkleOpen(const size_t& idx) const{
     return MTPayload{path, cols[idx], idx + leaf_offset};
 }
 
-bool MerkleTree::MerkleVerify(const Digest& root, const MTPayload& payload){
-    // Digest hashc = hash_column(col);
-    // Digest hashl = hash_column(proof.leaf_col[0]);
-    // Digest hashr = hash_column(proof.leaf_col[1]);
-    
-    // // the opened column is in the proof path
-    // if(hashc != hashl && hashc != hashr) return false;
-
-    // // verify the columns included in the proof
-    // if(hashl != proof.path[0]) return false;
-    // if(hashr != proof.path[1]) return false;
-    
-    // // verify the path
-    // // idx: the index of father of the queried column in the MTTree
-    // size_t i, idx = (proof.index +  (1 << (proof.path.size() >> 1))) >> 1;
-    // for(i = 2; i < proof.path.size(); i += 2){
-    //     if(hash_node(proof.path[i - 2], proof.path[i - 1]) != proof.path[i + (idx & 1)]) return false;
-    //     idx = idx >> 2;
-    // }
-    // if(hash_node(proof.path[i - 2], proof.path[i - 1]) != root) return false;
-    // return true;
+bool MerkleTree_base::MerkleVerify(const MerkleDef::Digest& root, const MTPayload& payload){
     col_t col = payload.column;
-    Digest hash = hash_column(col);
+    MerkleDef::Digest hash = hash_column(col);
     size_t index = payload.index;
 
-    for (const Digest& sibling : payload.path) {
+    for (const MerkleDef::Digest& sibling : payload.path) {
         if ((index & 1) == 0) {
             // this is left child
             hash = hash_node(hash, sibling);
@@ -142,4 +122,61 @@ bool MerkleTree::MerkleVerify(const Digest& root, const MTPayload& payload){
     }
     return hash == root;
 }
-    
+
+
+// construct the merkle hash tree from a matrix
+MerkleTree_ext::MerkleTree_ext(const std::vector<col_t> &data){
+    size_t num_cols = data[0].size();
+    for(size_t i = 0; i < num_cols; ++i){
+        col_t col(data.size());
+        for(size_t j = 0; j < data.size(); ++j){
+            col[j] = data[j][i];
+        }
+        cols.push_back(col);
+    }
+
+    // for clearer binary tree structure, index starts from 1 (T[0] is not used)
+    T = MerkleDef::MTtree(num_cols << 1);
+    // MTtree mt_t(num_cols << 1);
+    size_t loopN = find_ceiling_log2(num_cols);
+    leaf_offset = 1ul << loopN;
+    for(size_t j = 0; j < leaf_offset; ++j){
+        T[leaf_offset + j] = hash_column(cols[j]);
+    }
+    for(size_t i = loopN; i > 0; --i){
+        size_t offset = 1ul << (i - 1);
+        for(size_t j = 0; j < offset; ++j){
+            size_t idx = offset + j;
+            T[idx] = hash_node(T[2 * idx], T[2 * idx + 1]);
+        }
+    }
+}
+
+MerkleTree_ext::MTPayload MerkleTree_ext::MerkleOpen(const size_t& idx) const{
+    size_t index = leaf_offset + idx;
+    MerkleDef::MTPath path;
+    while(index != 1){
+        size_t sibling = (index ^ 1);
+        path.push_back(T[sibling]);
+        index >>= 1;
+    }
+    return MTPayload{path, cols[idx], idx + leaf_offset};
+}
+
+bool MerkleTree_ext::MerkleVerify(const MerkleDef::Digest& root, const MTPayload& payload){
+    col_t col = payload.column;
+    MerkleDef::Digest hash = hash_column(col);
+    size_t index = payload.index;
+
+    for (const MerkleDef::Digest& sibling : payload.path) {
+        if ((index & 1) == 0) {
+            // this is left child
+            hash = hash_node(hash, sibling);
+        } else {
+            // this is right child
+            hash = hash_node(sibling, hash);
+        }
+        index >>= 1;
+    }
+    return hash == root;
+}
