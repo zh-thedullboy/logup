@@ -47,38 +47,50 @@ LogupProver::LogupProver(const table_base& f1, const table_base& f2, const table
 //     // print_table(c);
 //     // return MultilinearPolynomial(c);
 // }
+
+
+// void LogupProver::calculate_multiplicities(){
+//     size_t n = f1.size();
+//     size_t m = t1.size();
+//     assert(n == f2.size());
+//     assert(m == t2.size());
+
+//     // table c;
+//     std::vector<size_t> c1;
+//     std::unordered_map<uint64_t, size_t> freq_map1, freq_map2;
+//     for (size_t i = 0;i < n; ++i){
+//         freq_map1[f1[i]]++;
+//         freq_map2[f2[i]]++;
+//     }
+//     c1.reserve(t1.size());
+//     c.reserve(t2.size());
+//     for(size_t i = 0;i < m; ++i){
+//         c1.push_back(freq_map1[t1[i]]);
+//         c.push_back(freq_map2[t2[i]]);
+//     }
+    
+//     assert(c1 == c);
+// }
+
+
+// in the real case, t1 and t2 are sorted vectors (ranges)
 void LogupProver::calculate_multiplicities(){
     size_t n = f1.size();
     size_t m = t1.size();
     assert(n == f2.size());
     assert(m == t2.size());
+    
+    c.resize(m, 0);
 
-    // table c;
-    std::vector<size_t> c1;
-    std::unordered_map<uint64_t, size_t> freq_map1, freq_map2;
-    for (size_t i = 0;i < n; ++i){
-        freq_map1[f1[i]]++;
-        freq_map2[f2[i]]++;
+    bool flag = false;
+    // don't calculate c twice.
+    // instead, when you find f1[i] at t1[j], try to make sure f2[i] == t2[j]
+    for(size_t i = 0; i < n; ++i){
+        size_t idx = bisearch(t1, f1[i]);
+        if(flag = flag || idx == t1.size() || f2[i] != t2[idx]) break;
+        c[idx] += 1;
     }
-    c1.reserve(t1.size());
-    c.reserve(t2.size());
-    for(size_t i = 0;i < m; ++i){
-        c1.push_back(freq_map1[t1[i]]);
-        c.push_back(freq_map2[t2[i]]);
-    }
-    
-    assert(c1 == c);
-    // c.reserve(c1.size());
-    // for (size_t i = 0;i < c1.size(); ++i){
-    //     c.push_back(Goldilocks::fromU64(c1[i]));
-    // }
-    
-    // print_table(t1);
-    // print_table(t2);
-    // print_table(f1);
-    // print_table(f2);
-    // print_table(c);
-    // return MultilinearPolynomial(c);
+    assert(!flag);
 }
 
 

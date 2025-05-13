@@ -60,6 +60,8 @@ std::vector<uint64_t> random_vec_uint(const size_t& n);
 
 std::vector<Goldilocks2::Element> random_vec_ext(const size_t& n);
 
+std::vector<uint64_t> trange(const uint64_t& lbound, const uint64_t& ubound);
+
 void print_table(const std::vector<Goldilocks2::Element>& table);
 
 void print_table(const std::vector<Goldilocks::Element>& table);
@@ -69,6 +71,8 @@ void print_table(const std::vector<size_t>& table);
 void print_hash(const std::array<uint8_t, 32>& hash);
 
 void print_bytes(const std::array<uint8_t, 16>& hash);
+
+size_t bisearch(const std::vector<uint64_t>& arr, const uint64_t& val);
 
 // evaluate a polynomial with its coefficients known as coefs at point x with Horners method
 Goldilocks2::Element Horner(const std::vector<Goldilocks2::Element> &coefs, const Goldilocks2::Element& x);

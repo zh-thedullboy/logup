@@ -101,6 +101,13 @@ std::vector<Goldilocks2::Element> random_vec_ext(const size_t& n){
     return vec;
 }
 
+std::vector<uint64_t> trange(const uint64_t& lbound, const uint64_t& ubound){
+    assert(lbound <= ubound);
+    std::vector<uint64_t> res;
+    for(uint64_t e = lbound; e <= ubound; ++e) res.push_back(e);
+    return res;
+}
+
 void print_table(const std::vector<Goldilocks2::Element>& table){
     for(auto e: table){
         std::cout << '(' <<  Goldilocks2::toString(e) << ')' << ' ';
@@ -137,6 +144,25 @@ void print_bytes(const std::array<uint8_t, 16>& hash){
         std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)hash[i];
     }
     std::cout << std::endl;
+}
+
+size_t bisearch(const std::vector<uint64_t>& arr, const uint64_t& val) {
+    size_t left = 0, right = arr.size();
+    while (left < right) {
+        size_t mid = left + (right - left) / 2;
+        if (arr[mid] < val) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
+    }
+
+
+    if (left < arr.size() && arr[left] == val) {
+        return left;
+    } else {
+        return arr.size();
+    }
 }
 
 Goldilocks2::Element Horner(const std::vector<Goldilocks2::Element> &coefs, const Goldilocks2::Element& x){
