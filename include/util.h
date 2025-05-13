@@ -54,7 +54,7 @@ MultilinearPolynomial eq(const size_t& num_var, const std::vector<Goldilocks2::E
 // calculate the inverse of all elements in arr with calculating only one inverse
 void batch_inverse(std::vector<Goldilocks2::Element>& inv, const std::vector<Goldilocks2::Element>& arr);
 
-std::vector<Goldilocks2::Element> random_vec_base(const size_t& n);
+std::vector<Goldilocks::Element> random_vec_base(const size_t& n);
 
 std::vector<Goldilocks2::Element> random_vec_ext(const size_t& n);
 
@@ -85,11 +85,11 @@ std::vector<Goldilocks2::Element> eval_with_ntt_ext(std::vector<Goldilocks2::Ele
 
 namespace std{
     template <>
-    struct hash<Goldilocks2::Element> {
-        size_t operator()(const Goldilocks2::Element& arr) const {
-            size_t h1 = std::hash<uint64_t>{}(Goldilocks::toU64(arr[0]));
-            size_t h2 = std::hash<uint64_t>{}(Goldilocks::toU64(arr[1]));
-            return h1 ^ (h2 << 1);
+    struct hash<Goldilocks::Element> {
+        size_t operator()(const Goldilocks::Element& arr) const {
+            size_t h1 = std::hash<uint64_t>{}(Goldilocks::toU64(arr));
+            // size_t h2 = std::hash<uint64_t>{}(Goldilocks::toU64(arr[1]));
+            return h1;
         }
     };
 }

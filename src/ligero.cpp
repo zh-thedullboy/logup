@@ -1,5 +1,5 @@
 #include "ligero.h"
-#include "mle.h"
+// #include "mle.h"
 #include "goldilocks_quadratic_ext.h"
 #include "merkle.h"
 #include "util.h"
@@ -19,23 +19,44 @@ std::vector<Goldilocks2::Element> rsencode(const std::vector<Goldilocks2::Elemen
     return eval_with_ntt(data, data.size() * rho_inv);
 }
 
-ligeroProver_base::ligeroProver_base(const MultilinearPolynomial& w, const uint64_t& rho_inv):mle(w), rho_inv(rho_inv){
-    // stevals = w.get_eval_table();
-    std::vector<Goldilocks2::Element> evals = w.get_eval_table();
+ligeroProver_base::ligeroProver_base(const MultilinearPolynomial& w, const uint64_t& rho_inv):rho_inv(rho_inv){
     size_t l = w.get_num_vars();
 
     // 2^l = a * b
     a = 1ull << (l >> 1);       //floor(l/2)
     b = a << (l & 1);           //ceil(l/2)
+    M.resize(1ull << l);
     codelen = b * rho_inv;
-    std::vector<std::vector<Goldilocks::Element>> beforerscode;
+    // std::vector<std::vector<Goldilocks::Element>> beforerscode;
+    for(size_t i = 0; i < a; ++i){
+        std::vector<Goldilocks::Element> dataline(b);
+        for(size_t j = 0; j < b; ++j){
+            
+            dataline[j] = M[i * b + j] = w.eval_hypercube(i * b + j)[0];
+        }
+        // beforerscode.push_back(dataline);
+        codewords.push_back(rsencode(dataline, rho_inv));
+    }
+    mt_t = MerkleTree_base(codewords);
+}
+
+
+ligeroProver_base::ligeroProver_base(const std::vector<Goldilocks::Element>& w, const uint64_t& rho_inv):M(w), rho_inv(rho_inv){
+    // stevals = w.get_eval_table();
+    size_t l = find_ceiling_log2(w.size());
+
+    // 2^l = a * b
+    a = 1ull << (l >> 1);       //floor(l/2)
+    b = a << (l & 1);           //ceil(l/2)
+    codelen = b * rho_inv;
+    // std::vector<std::vector<Goldilocks::Element>> beforerscode;
     for(size_t i = 0; i < a; ++i){
         std::vector<Goldilocks::Element> dataline(b);
         for(size_t j = 0; j < b; ++j){
             // dataline.push_back(evals[i * b + j]);
-            dataline[j] = evals[i * b + j][0];
+            dataline[j] = w[i * b + j];
         }
-        beforerscode.push_back(dataline);
+        // beforerscode.push_back(dataline);
         codewords.push_back(rsencode(dataline, rho_inv));
     }
     mt_t = MerkleTree_base(codewords);
@@ -45,12 +66,11 @@ std::vector<Goldilocks2::Element> ligeroProver_base::lincomb(const std::vector<G
     assert(r.size() == a);
     // std::cout << r.size() << '\n' << a << '\n';
     std::vector<Goldilocks2::Element> v(b, Goldilocks2::zero());
-    std::vector<Goldilocks2::Element> evals = mle.get_eval_table();
     for(size_t j = 0; j < a; ++j){
         Goldilocks2::Element tmp;
         size_t offset = j * b;
         for(size_t i = 0; i < b; ++i){
-            Goldilocks2::mul(tmp, r[j], evals[offset + i][0]);
+            Goldilocks2::mul(tmp, r[j], M[offset + i]);
             Goldilocks2::add(v[i], v[i], tmp);
         }
     }
@@ -71,23 +91,45 @@ ligeropcs_base ligeroProver_base::commit() const{
 
 
 
-ligeroProver_ext::ligeroProver_ext(const MultilinearPolynomial& w, const uint64_t& rho_inv):mle(w), rho_inv(rho_inv){
+ligeroProver_ext::ligeroProver_ext(const MultilinearPolynomial& w, const uint64_t& rho_inv):rho_inv(rho_inv){
     // evals = w.get_eval_table();
-    std::vector<Goldilocks2::Element> evals = w.get_eval_table();
+    // std::vector<Goldilocks2::Element> evals = w.get_eval_table();
     size_t l = w.get_num_vars();
-
+    M.resize(1ull << l);
     // 2^l = a * b
     a = 1ull << (l >> 1);       //floor(l/2)
     b = a << (l & 1);           //ceil(l/2)
     codelen = b * rho_inv;
-    std::vector<std::vector<Goldilocks2::Element>> beforerscode;
+    // std::vector<std::vector<Goldilocks2::Element>> beforerscode;
     for(size_t i = 0; i < a; ++i){
         std::vector<Goldilocks2::Element> dataline(b);
         for(size_t j = 0; j < b; ++j){
             // dataline.push_back(evals[i * b + j]);
-            dataline[j] = evals[i * b + j];
+            dataline[j] = M[i * b + j] = w.eval_hypercube(i * b + j);
         }
-        beforerscode.push_back(dataline);
+        // beforerscode.push_back(dataline);
+        codewords.push_back(rsencode(dataline, rho_inv));
+    }
+    mt_t = MerkleTree_ext(codewords);
+}
+
+ligeroProver_ext::ligeroProver_ext(const std::vector<Goldilocks2::Element>& w, const uint64_t& rho_inv):M(w), rho_inv(rho_inv){
+    // evals = w.get_eval_table();
+    // std::vector<Goldilocks2::Element> evals = w.get_eval_table();
+    size_t l = find_ceiling_log2(w.size());
+    M.resize(1ull << l);
+    // 2^l = a * b
+    a = 1ull << (l >> 1);       //floor(l/2)
+    b = a << (l & 1);           //ceil(l/2)
+    codelen = b * rho_inv;
+    // std::vector<std::vector<Goldilocks2::Element>> beforerscode;
+    for(size_t i = 0; i < a; ++i){
+        std::vector<Goldilocks2::Element> dataline(b);
+        for(size_t j = 0; j < b; ++j){
+            // dataline.push_back(evals[i * b + j]);
+            dataline[j] = w[i * b + j];
+        }
+        // beforerscode.push_back(dataline);
         codewords.push_back(rsencode(dataline, rho_inv));
     }
     mt_t = MerkleTree_ext(codewords);
@@ -97,12 +139,11 @@ std::vector<Goldilocks2::Element> ligeroProver_ext::lincomb(const std::vector<Go
     assert(r.size() == a);
     // std::cout << r.size() << '\n' << a << '\n';
     std::vector<Goldilocks2::Element> v(b, Goldilocks2::zero());
-    std::vector<Goldilocks2::Element> evals = mle.get_eval_table();
     for(size_t j = 0; j < a; ++j){
         Goldilocks2::Element tmp;
         size_t offset = j * b;
         for(size_t i = 0; i < b; ++i){
-            Goldilocks2::mul(tmp, r[j], evals[offset + i]);
+            Goldilocks2::mul(tmp, r[j], M[offset + i]);
             Goldilocks2::add(v[i], v[i], tmp);
         }
     }

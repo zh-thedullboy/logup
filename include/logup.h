@@ -17,15 +17,17 @@ namespace LogupDef{
 
 class LogupProver{
 public:
-    using table = std::vector<Goldilocks2::Element>;
+    using table_base = std::vector<Goldilocks::Element>;
+    using table_ext = std::vector<Goldilocks2::Element>;
     // should be replaced with a pcs
 private:
-    table f1, f2, t1, t2, c, g, h;
+    table_base f1, f2, t1, t2, c;
+    table_ext g, h;
     std::optional<MultilinearPolynomial> polyg, polyh;
     // intermediate tables used for last 2 sumchecks
-    table denomg, denomh;
+    table_ext denomg, denomh;
 public:
-    LogupProver(const table& f1, const table& f2, const table& t1, const table& t2);
+    LogupProver(const table_base& f1, const table_base& f2, const table_base& t1, const table_base& t2);
     void calculate_multiplicities();
     void calculate_gh(const Goldilocks2::Element& gamma, const Goldilocks2::Element& lambda);
     LogupDef::pcs_base commit_c(const uint64_t& rho_inv);

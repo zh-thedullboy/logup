@@ -9,7 +9,7 @@
 #include <vector>
 #include <random>
 
-LogupProver::LogupProver(const table& f1, const table& f2, const table& t1, const table& t2):f1(f1), f2(f2), t1(t1), t2(t2) {
+LogupProver::LogupProver(const table_base& f1, const table_base& f2, const table_base& t1, const table_base& t2):f1(f1), f2(f2), t1(t1), t2(t2) {
     calculate_multiplicities();
 }
 
@@ -22,7 +22,7 @@ void LogupProver::calculate_multiplicities(){
 
     // table c;
     std::vector<size_t> c1,c2;
-    std::unordered_map<Goldilocks2::Element, size_t> freq_map1, freq_map2;
+    std::unordered_map<Goldilocks::Element, size_t> freq_map1, freq_map2;
     for (size_t i = 0;i < n; ++i){
         freq_map1[f1[i]]++;
         freq_map2[f2[i]]++;
@@ -37,7 +37,7 @@ void LogupProver::calculate_multiplicities(){
     assert(c1 == c2);
     c.reserve(c1.size());
     for (size_t i = 0;i < c1.size(); ++i){
-        c.push_back(Goldilocks2::fromU64(c1[i]));
+        c.push_back(Goldilocks::fromU64(c1[i]));
     }
     
     // print_table(t1);
@@ -50,11 +50,16 @@ void LogupProver::calculate_multiplicities(){
 
 
 void LogupProver::calculate_gh(const Goldilocks2::Element& gamma, const Goldilocks2::Element& lambda){
-    h = c;
+    // h = c;
+
+    h.resize(c.size());
+    for(size_t i = 0;i < c.size(); ++i){
+        h[i] = {c[i], Goldilocks::zero()};
+    }
     g.resize(f1.size(), Goldilocks2::one());
     denomg.resize(g.size());
     denomh.resize(h.size());
-    table inv(std::max(g.size(), h.size())); // store inverse of denomg and denomh
+    table_ext inv(std::max(g.size(), h.size())); // store inverse of denomg and denomh
 
     for (size_t i = 0;i < f1.size(); ++i){
         Goldilocks2::Element tmp;
@@ -82,28 +87,26 @@ void LogupProver::calculate_gh(const Goldilocks2::Element& gamma, const Goldiloc
     }
 
 
-    // polyg = MultilinearPolynomial(g);
     polyg.emplace(g);
     polyh.emplace(h);
-    // polyh = MultilinearPolynomial(h);
 }
 
 std::array<LogupDef::pcs_base, 4> LogupProver::commit_ft(const uint64_t& rho_inv){
-    ligeroProver_base prf1(MultilinearPolynomial(f1), rho_inv),
-                prf2(MultilinearPolynomial(f2), rho_inv),
-                prt1(MultilinearPolynomial(t1), rho_inv),
-                prt2(MultilinearPolynomial(t2), rho_inv);
+    ligeroProver_base prf1(f1, rho_inv),
+                prf2(f2, rho_inv),
+                prt1(t1, rho_inv),
+                prt2(t2, rho_inv);
     return {prf1.commit(), prf2.commit(), prt1.commit(), prt2.commit()};
 }
 
 LogupDef::pcs_base LogupProver::commit_c(const uint64_t& rho_inv){
     // return MultilinearPolynomial(c);
-    ligeroProver_base pr(MultilinearPolynomial(c), rho_inv);
+    ligeroProver_base pr(c, rho_inv);
     return pr.commit();
 }
 
 std::array<LogupDef::pcs_ext, 2> LogupProver::commit_gh(const uint64_t& rho_inv){
-    ligeroProver_ext prg(*polyg, rho_inv), prh(*polyh, rho_inv);
+    ligeroProver_ext prg(g, rho_inv), prh(h, rho_inv);
     return {prg.commit(), prh.commit()};
 }
 
@@ -116,14 +119,12 @@ std::array<pProver, 2> LogupProver::secondProvers(const std::vector<Goldilocks2:
     assert((1ull << rg.size()) == g.size());
     assert((1ull << rh.size()) == h.size());
     // assert(rh.size() == h.size());
-    MultilinearPolynomial polyg(g);
-    MultilinearPolynomial polyh(h);
     MultilinearPolynomial polydenomg(denomg);
     MultilinearPolynomial polydenomh(denomh);
-    MultilinearPolynomial eqg = eq(polyg.get_num_vars(), rg);
-    MultilinearPolynomial eqh = eq(polyh.get_num_vars(), rh);
-    pProver prg(eqg, polyg, polydenomg);
-    pProver prh(eqh, polyh, polydenomh);
+    MultilinearPolynomial eqg = eq((*polyg).get_num_vars(), rg);
+    MultilinearPolynomial eqh = eq((*polyh).get_num_vars(), rh);
+    pProver prg(eqg, *polyg, polydenomg);
+    pProver prh(eqh, *polyh, polydenomh);
     std::array<pProver, 2> provers = {prg, prh};
     return provers;
 }

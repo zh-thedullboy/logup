@@ -35,16 +35,20 @@ public:
 
 public:
     ligeroProver_base(const MultilinearPolynomial& w, const uint64_t& rho_inv);
+    ligeroProver_base(const std::vector<uint64_t>& w, const uint64_t& rho_inv);
+    ligeroProver_base(const std::vector<Goldilocks::Element>& w, const uint64_t& rho_inv);
     ligeropcs_base commit() const;
     std::vector<Goldilocks2::Element> lincomb(const std::vector<Goldilocks2::Element>& r) const;
     std::vector<MerkleTree_base::MTPayload> open_cols(const std::vector<size_t>& indexes) const;
     
 private:
     // mle is a multilinear polynomial whose evaluations over the hypercube are all base field elements 
-    MultilinearPolynomial mle;
+    // MultilinearPolynomial mle;
 
     // num of rows, columns;
     size_t a, b;
+    // original vector
+    std::vector<Goldilocks::Element> M;
     // encoded matrix
     std::vector<std::vector<Goldilocks::Element>> codewords;
     // merkle hash tree of codewords
@@ -59,15 +63,18 @@ public:
 
 public:
     ligeroProver_ext(const MultilinearPolynomial& w, const uint64_t& rho_inv);
+    ligeroProver_ext(const std::vector<Goldilocks2::Element>& w, const uint64_t& rho_inv);
     ligeropcs_ext commit() const;
     std::vector<Goldilocks2::Element> lincomb(const std::vector<Goldilocks2::Element>& r) const;
     std::vector<MerkleTree_ext::MTPayload> open_cols(const std::vector<size_t>& indexes) const;
     
 private:
-    MultilinearPolynomial mle;
+    // MultilinearPolynomial mle;
 
     // num of rows, columns;
     size_t a, b;
+    // original vector
+    std::vector<Goldilocks2::Element> M;
     // encoded matrix
     std::vector<std::vector<Goldilocks2::Element>> codewords;
     // merkle hash tree of codewords
