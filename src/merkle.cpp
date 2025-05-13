@@ -20,13 +20,37 @@ std::array<uint8_t, 16> to_bytes(const Goldilocks2::Element& e) {
     return bytes;
 }
 
+std::array<uint8_t, 8> to_bytes(const Goldilocks::Element& e) {
+    std::array<uint8_t, 8> bytes;
+    uint64_t literal = Goldilocks::toU64(e);
+    for (int i = 0; i < 8; i++) {
+        bytes[7 - i]  = (literal >> (8 * i)) & 0xFF;
+    }
+
+    // std::cout <<"bytes of ";
+    // std::cout << Goldilocks2::toString(e) <<':';
+    // print_bytes(bytes);
+    return bytes;
+}
+
 // hash one column
-MerkleTree::Digest hash_column(const std::vector<Goldilocks2::Element>& col){
+// MerkleTree::Digest hash_column(const std::vector<Goldilocks2::Element>& col){
+//     SHA256_CTX ctx;
+//     SHA256_Init(&ctx);
+//     std::array<uint8_t, SHA256_DIGEST_LENGTH> hash;
+//     // 16 for 2 * 64 / 8
+//     for(auto e: col) SHA256_Update(&ctx, to_bytes(e).data(), 16);
+//     SHA256_Final(hash.data(), &ctx);
+//     return hash;
+// }
+
+// hash the column
+MerkleTree::Digest hash_column(const MerkleTree::col_t& col){
     SHA256_CTX ctx;
     SHA256_Init(&ctx);
     std::array<uint8_t, SHA256_DIGEST_LENGTH> hash;
-    // 16 for 2 * 64 / 8
-    for(auto e: col) SHA256_Update(&ctx, to_bytes(e).data(), 16);
+    // 8 for 64 / 8
+    for(auto e: col) SHA256_Update(&ctx, to_bytes(e).data(), 8);
     SHA256_Final(hash.data(), &ctx);
     return hash;
 }
@@ -43,7 +67,7 @@ MerkleTree::Digest hash_node(const std::array<uint8_t, SHA256_DIGEST_LENGTH>& l,
 }
 
 // construct the merkle hash tree from a matrix
-MerkleTree::MerkleTree(const std::vector<std::vector<Goldilocks2::Element>> &data){
+MerkleTree::MerkleTree(const std::vector<col_t> &data){
     size_t num_cols = data[0].size();
     for(size_t i = 0; i < num_cols; ++i){
         col_t col(data.size());
@@ -102,7 +126,7 @@ bool MerkleTree::MerkleVerify(const Digest& root, const MTPayload& payload){
     // }
     // if(hash_node(proof.path[i - 2], proof.path[i - 1]) != root) return false;
     // return true;
-    col_t col =payload.column;
+    col_t col = payload.column;
     Digest hash = hash_column(col);
     size_t index = payload.index;
 
