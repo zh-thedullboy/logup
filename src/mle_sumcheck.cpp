@@ -63,8 +63,65 @@ std::array<Goldilocks2::Element, 2> sProver::send_message(const size_t& round, c
 
 // sVerifier::sVerifier(){}
 
-bool sVerifier::execute_sumcheck(sProver& pr, const Oracle& oracle, const size_t& sec_param){
-    if(!ligeroVerifier::check_commit(oracle, sec_param)) return false;
+bool sVerifier::execute_sumcheck(sProver& pr, const ligeropcs_base& oracle, const size_t& sec_param){
+    // if(!ligeroVerifier::check_commit(oracle, sec_param)) return false;
+    Goldilocks2::Element sum = pr.get_sum();
+    size_t nrnd = pr.get_rounds();
+    std::vector<Goldilocks2::Element> challenges;
+
+    // s_{i - 1}
+    std::array<Goldilocks2::Element, 2> si1;
+    for(int round = 1;round <= nrnd; ++round){
+        // s_i
+        std::array<Goldilocks2::Element, 2> si;    
+        si = pr.send_message(round, challenges);
+        // s(0) + s(1)
+        Goldilocks2::Element ss;
+        Goldilocks2::add(ss, si[0], si[1]);
+        if(round == 1){
+            if(!(ss == sum)) return false;
+        }
+        else{
+            // s_{i - 1}(r) = r * s_{i - 1}(1) + (1-r) * s_{i - 1}(0)
+            Goldilocks2::Element sr;
+            Goldilocks2::Element r = challenges[round - 2];
+            Goldilocks2::Element A, B, oneminusr;
+            Goldilocks2::sub(oneminusr, Goldilocks::one(), r);
+            Goldilocks2::mul(A, si1[0], oneminusr);
+            Goldilocks2::mul(B, si1[1], r);
+            Goldilocks2::add(sr, A, B);
+            if(!(sr == ss)) return false;
+
+            // final check
+            if(round == nrnd){
+                challenges.push_back(challenge());
+                // should be implemented later
+                // fr: f(r1, r2, ..., rl)
+                Goldilocks2::Element f_r = ligeroVerifier::open(oracle, challenges, sec_param);
+
+                // std::cout << Goldilocks2::toString(f_r) << '\n';
+                // s_l(r_l)
+                Goldilocks2::Element slrl;
+                Goldilocks2::Element rl = challenges[round - 1];
+                Goldilocks2::Element C, D, oneminusrl;
+                Goldilocks2::sub(oneminusrl, Goldilocks::one(), rl);
+                Goldilocks2::mul(C, si[0], oneminusrl);
+                Goldilocks2::mul(D, si[1], rl);
+                Goldilocks2::add(slrl, C, D);
+                if(!(slrl == f_r)) return false;
+                // std::cout << Goldilocks2::toString(slrl) << '\n';
+            }
+        }
+
+        challenges.push_back(challenge());
+        // goto next round
+        si1 = si;
+    }
+    return true;
+}
+
+bool sVerifier::execute_sumcheck(sProver& pr, const ligeropcs_ext& oracle, const size_t& sec_param){
+    // if(!ligeroVerifier::check_commit(oracle, sec_param)) return false;
     Goldilocks2::Element sum = pr.get_sum();
     size_t nrnd = pr.get_rounds();
     std::vector<Goldilocks2::Element> challenges;

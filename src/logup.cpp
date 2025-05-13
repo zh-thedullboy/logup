@@ -88,22 +88,22 @@ void LogupProver::calculate_gh(const Goldilocks2::Element& gamma, const Goldiloc
     // polyh = MultilinearPolynomial(h);
 }
 
-std::array<LogupDef::pcs, 4> LogupProver::commit_ft(const uint64_t& rho_inv){
-    ligeroProver prf1(MultilinearPolynomial(f1), rho_inv),
+std::array<LogupDef::pcs_base, 4> LogupProver::commit_ft(const uint64_t& rho_inv){
+    ligeroProver_base prf1(MultilinearPolynomial(f1), rho_inv),
                 prf2(MultilinearPolynomial(f2), rho_inv),
                 prt1(MultilinearPolynomial(t1), rho_inv),
                 prt2(MultilinearPolynomial(t2), rho_inv);
     return {prf1.commit(), prf2.commit(), prt1.commit(), prt2.commit()};
 }
 
-LogupDef::pcs LogupProver::commit_c(const uint64_t& rho_inv){
+LogupDef::pcs_base LogupProver::commit_c(const uint64_t& rho_inv){
     // return MultilinearPolynomial(c);
-    ligeroProver pr(MultilinearPolynomial(c), rho_inv);
+    ligeroProver_base pr(MultilinearPolynomial(c), rho_inv);
     return pr.commit();
 }
 
-std::array<LogupDef::pcs, 2> LogupProver::commit_gh(const uint64_t& rho_inv){
-    ligeroProver prg(*polyg, rho_inv), prh(*polyh, rho_inv);
+std::array<LogupDef::pcs_ext, 2> LogupProver::commit_gh(const uint64_t& rho_inv){
+    ligeroProver_ext prg(*polyg, rho_inv), prh(*polyh, rho_inv);
     return {prg.commit(), prh.commit()};
 }
 
@@ -133,24 +133,23 @@ std::mt19937_64 LogupVerifier::gen(std::random_device{}());
 std::uniform_int_distribution<uint64_t> LogupVerifier::dist(0, Goldilocks2::p - 1);
 
 bool LogupVerifier::execute_logup(LogupProver& lpr, const uint64_t& rho_inv, const size_t& sec_param){
-    std::array<LogupDef::pcs, 4> ft = lpr.commit_ft(rho_inv);
+    auto ft = lpr.commit_ft(rho_inv);
     for(auto pc: ft){
         if(!ligeroVerifier::check_commit(pc, sec_param)) return false;
     }
 
-    LogupDef::pcs c = lpr.commit_c(rho_inv);
+    auto c = lpr.commit_c(rho_inv);
     if(!ligeroVerifier::check_commit(c, sec_param)) return false;
 
     Goldilocks2::Element gamma = randnum();
     Goldilocks2::Element lambda = randnum();
     lpr.calculate_gh(gamma, lambda);
-    std::array<LogupDef::pcs, 2> gh = lpr.commit_gh(rho_inv);
+    auto gh = lpr.commit_gh(rho_inv);
     for(auto pc: gh){
         if(!ligeroVerifier::check_commit(pc, sec_param)) return false;
     }
 
-    LogupDef::pcs pcsg = gh[0];
-    LogupDef::pcs pcsh = gh[1];
+    auto pcsg = gh[0], pcsh = gh[1];
 
     std::array<sProver, 2> firstProvers = lpr.firstProvers();
     Goldilocks2::Element sum = firstProvers[0].get_sum();
@@ -176,10 +175,7 @@ bool LogupVerifier::execute_logup(LogupProver& lpr, const uint64_t& rho_inv, con
 
     MultilinearPolynomial eqg = eq(numvar_g, rg);
     MultilinearPolynomial eqh = eq(numvar_h, rh);
-    LogupDef::pcs pcsf1 = ft[0];
-    LogupDef::pcs pcsf2 = ft[1];
-    LogupDef::pcs pcst1 = ft[2];
-    LogupDef::pcs pcst2 = ft[3];
+    auto pcsf1 = ft[0], pcsf2 = ft[1], pcst1 = ft[2], pcst2 = ft[3];
     if(!pVerifier::execute_logup_sumcheck(secondProvers[0], eqg, pcsg, pcsf1, pcsf2, gamma, lambda, sec_param)){
         std::cout << "logup failed 2 \n";
         return false;

@@ -11,7 +11,8 @@
 #include <random>
 
 namespace LogupDef{
-    typedef ligeropcs pcs;
+    typedef ligeropcs_base pcs_base;
+    typedef ligeropcs_ext pcs_ext;
 }
 
 class LogupProver{
@@ -27,9 +28,9 @@ public:
     LogupProver(const table& f1, const table& f2, const table& t1, const table& t2);
     void calculate_multiplicities();
     void calculate_gh(const Goldilocks2::Element& gamma, const Goldilocks2::Element& lambda);
-    LogupDef::pcs commit_c(const uint64_t& rho_inv);
-    std::array<LogupDef::pcs, 4> commit_ft(const uint64_t& rho_inv);
-    std::array<LogupDef::pcs, 2> commit_gh(const uint64_t& rho_inv);
+    LogupDef::pcs_base commit_c(const uint64_t& rho_inv);
+    std::array<LogupDef::pcs_base, 4> commit_ft(const uint64_t& rho_inv);
+    std::array<LogupDef::pcs_ext, 2> commit_gh(const uint64_t& rho_inv);
     std::array<sProver, 2> firstProvers();
     std::array<pProver, 2> secondProvers(const std::vector<Goldilocks2::Element>& rg, const std::vector<Goldilocks2::Element>& rh);
 };

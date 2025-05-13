@@ -23,8 +23,10 @@ private:
 class sVerifier{
 public:
     // should be replaced with a pcs
-    typedef ligeropcs Oracle;
-    static bool execute_sumcheck(sProver& pr, const Oracle& oracle, const size_t& sec_param);
+    // typedef ligeropcs_base Oracle_base;
+    // typedef ligeropcs_ext Oracle_ext;
+    static bool execute_sumcheck(sProver& pr, const ligeropcs_base& oracle, const size_t& sec_param);
+    static bool execute_sumcheck(sProver& pr, const ligeropcs_ext& oracle, const size_t& sec_param);
 private:
     static Goldilocks2::Element challenge();
 };

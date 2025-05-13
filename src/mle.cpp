@@ -76,6 +76,15 @@ MultilinearPolynomial::MultilinearPolynomial(const std::vector<Goldilocks2::Elem
     num_vars = r;
 }
 
+MultilinearPolynomial::MultilinearPolynomial(const std::vector<uint64_t>& val_table){
+    size_t r = find_ceiling_log2(val_table.size());
+    num_vars = r;
+    evaluations.resize(1ull << num_vars);
+    for(size_t i = 0;i < val_table.size(); ++i){
+        evaluations[i] = Goldilocks2::fromU64(val_table[i]);
+    }
+}
+
 void MultilinearPolynomial::set_value(const std::string& mask, const Goldilocks2::Element& c){
     evaluations[convert_mask_to_u64(mask, num_vars)] = c;
 }

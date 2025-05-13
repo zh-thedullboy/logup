@@ -3,6 +3,7 @@
 #include "../goldilocks/src/goldilocks_base_field.hpp"
 #include "goldilocks_quadratic_ext.h"
 #include <string>
+#include <cstdint>
 
 //  改成点值存储
 // class MultilinearPolynomial {
@@ -29,6 +30,7 @@ class MultilinearPolynomial{
 public:
     MultilinearPolynomial(size_t num_vars);
     MultilinearPolynomial(const std::vector<Goldilocks2::Element>& evaluations);
+    MultilinearPolynomial(const std::vector<uint64_t>& val_table);
     size_t get_num_vars() const{return num_vars;}
 
     // only for debug use
