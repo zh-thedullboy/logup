@@ -71,12 +71,22 @@ void batch_inverse(std::vector<Goldilocks2::Element>& inv, const std::vector<Gol
     inv[0] = invp;
 }
 
-std::vector<Goldilocks2::Element> random_vec(size_t n){
+std::vector<Goldilocks2::Element> random_vec_base(const size_t& n){
     srand(time(nullptr));
     std::vector<Goldilocks2::Element> vec;
     vec.reserve(n);
     for(size_t i = 0;i < n; ++i){
         vec.push_back(Goldilocks2::fromU64(rand()));
+    }
+    return vec;
+}
+
+std::vector<Goldilocks2::Element> random_vec_ext(const size_t& n){
+    srand(time(nullptr));
+    std::vector<Goldilocks2::Element> vec;
+    vec.reserve(n);
+    for(size_t i = 0;i < n; ++i){
+        vec.push_back({Goldilocks::fromU64(rand()), Goldilocks::fromU64(rand())});
     }
     return vec;
 }

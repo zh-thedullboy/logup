@@ -54,7 +54,9 @@ MultilinearPolynomial eq(const size_t& num_var, const std::vector<Goldilocks2::E
 // calculate the inverse of all elements in arr with calculating only one inverse
 void batch_inverse(std::vector<Goldilocks2::Element>& inv, const std::vector<Goldilocks2::Element>& arr);
 
-std::vector<Goldilocks2::Element> random_vec(size_t n);
+std::vector<Goldilocks2::Element> random_vec_base(const size_t& n);
+
+std::vector<Goldilocks2::Element> random_vec_ext(const size_t& n);
 
 void print_table(const std::vector<Goldilocks2::Element>& table);
 
