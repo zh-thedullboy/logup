@@ -65,7 +65,7 @@ ligeroProver_base::ligeroProver_base(const std::vector<Goldilocks::Element>& w, 
 ligeroProver_base::ligeroProver_base(const std::vector<uint64_t>& w, const uint64_t& rho_inv):rho_inv(rho_inv){
     // stevals = w.get_eval_table();
     size_t l = find_ceiling_log2(w.size());
-    std::cout << l << '\n';
+    // std::cout << l << '\n';
 
     // 2^l = a * b
     a = 1ull << (l >> 1);       //floor(l/2)
