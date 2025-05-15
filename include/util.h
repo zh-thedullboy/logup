@@ -67,6 +67,8 @@ std::vector<Goldilocks2::Element> random_vec_ext(const size_t& n);
 
 std::vector<uint64_t> trange(const uint64_t& lbound, const uint64_t& ubound);
 
+void alert(const std::string& mes);
+
 void print_table(const std::vector<Goldilocks2::Element>& table);
 
 void print_table(const std::vector<Goldilocks::Element>& table);

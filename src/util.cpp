@@ -131,6 +131,10 @@ std::vector<uint64_t> trange(const uint64_t& lbound, const uint64_t& ubound){
     return res;
 }
 
+void alert(const std::string& mes){
+    std::cout << mes << '\n';
+}
+
 void print_table(const std::vector<Goldilocks2::Element>& table){
     for(auto e: table){
         std::cout << '(' <<  Goldilocks2::toString(e) << ')' << ' ';

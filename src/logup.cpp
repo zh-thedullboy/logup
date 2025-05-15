@@ -187,9 +187,11 @@ bool LogupVerifier::execute_logup(LogupProver& lpr, const uint64_t& rho_inv, con
     for(auto pc: ft){
         if(!ligeroVerifier::check_commit(pc, sec_param)) return false;
     }
+    alert("f,t commited");
 
     auto c = lpr.commit_c(rho_inv);
     if(!ligeroVerifier::check_commit(c, sec_param)) return false;
+    alert("c commited");
 
     Goldilocks2::Element gamma = randnum();
     Goldilocks2::Element lambda = randnum();
@@ -198,6 +200,7 @@ bool LogupVerifier::execute_logup(LogupProver& lpr, const uint64_t& rho_inv, con
     for(auto pc: gh){
         if(!ligeroVerifier::check_commit(pc, sec_param)) return false;
     }
+    alert("g,h commited");
 
     auto pcsg = gh[0], pcsh = gh[1];
 
@@ -208,10 +211,12 @@ bool LogupVerifier::execute_logup(LogupProver& lpr, const uint64_t& rho_inv, con
         std::cout << "logup failed 0 \n";
         return false;
     }
+    alert("sumcheck 1 / 4 finished");
     if(!sVerifier::execute_sumcheck(firstProvers[1], pcsh, sec_param)){
         std::cout << "logup failed 1 \n";
         return false;
     }
+    alert("sumcheck 2 / 4 finished");
 
     const size_t numvar_g = find_ceiling_log2(pcsg.num_cols * pcsg.num_rows);
     const size_t numvar_h = find_ceiling_log2(pcsh.num_cols * pcsh.num_rows);
@@ -230,12 +235,14 @@ bool LogupVerifier::execute_logup(LogupProver& lpr, const uint64_t& rho_inv, con
         std::cout << "logup failed 2 \n";
         return false;
     }
+    alert("sumcheck 3 / 4 finished");
 
     if(!pVerifier::execute_logup_sumcheck(secondProvers[1], eqh, pcsh, pcst1, pcst2, gamma, lambda, sec_param)){
         std::cout << "logup failed 3 \n";
         return false;
     }
-
+    alert("sumcheck 4 / 4 finished");
+    alert("logup finished");
     return true;
 }
     
