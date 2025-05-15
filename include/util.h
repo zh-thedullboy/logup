@@ -48,6 +48,11 @@ int find_ceiling_log2(const uint64_t& n);
 
 bool is_power_of_2(const uint64_t& n);
 
+// pad a vector to length of power of 2
+void pad(std::vector<Goldilocks2::Element>& table, const Goldilocks2::Element dummy = Goldilocks2::zero());
+void pad(std::vector<Goldilocks::Element>& table, const Goldilocks::Element dummy = Goldilocks::zero());
+void pad(std::vector<uint64_t>& table, const uint64_t dummy = 0ull);
+
 // evaluate \tilde{eq}(r, x) = \prod_{i=0}^{n-1} (1 - r_i x_i) in O(2^l) linear time
 MultilinearPolynomial eq(const size_t& num_var, const std::vector<Goldilocks2::Element>& r);
 

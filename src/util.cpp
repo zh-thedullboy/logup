@@ -35,6 +35,29 @@ bool is_power_of_2(const uint64_t& n){
     return n != 0 && (n & (n - 1)) == 0;
 }
 
+template <typename T>
+void pad_impl(std::vector<T>& table, const T& dummy){
+    if(is_power_of_2(table.size())) return;
+    const size_t new_size = 1ull << find_ceiling_log2(table.size());
+    table.resize(new_size, dummy);
+}
+
+// template void pad_impl<Goldilocks2::Element>(std::vector<Goldilocks2::Element>&, const Goldilocks2::Element&);
+// template void pad_impl<Goldilocks::Element>(std::vector<Goldilocks::Element>&, const Goldilocks::Element&);
+// template void pad_impl<uint64_t>(std::vector<uint64_t>&, const uint64_t&);
+
+void pad(std::vector<Goldilocks2::Element>& table, const Goldilocks2::Element dummy) {
+    pad_impl(table, dummy);
+}
+
+void pad(std::vector<Goldilocks::Element>& table, const Goldilocks::Element dummy) {
+    pad_impl(table, dummy);
+}
+
+void pad(std::vector<uint64_t>& table, const uint64_t dummy) {
+    pad_impl(table, dummy);
+}
+
 
 MultilinearPolynomial eq(const size_t& num_var, const std::vector<Goldilocks2::Element>& r){
     std::vector<Goldilocks2::Element> evaluations;

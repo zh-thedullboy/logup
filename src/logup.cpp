@@ -9,7 +9,9 @@
 #include <vector>
 #include <random>
 
-LogupProver::LogupProver(const table_base& f1, const table_base& f2, const table_base& t1, const table_base& t2):f1(f1), f2(f2), t1(t1), t2(t2) {
+LogupProver::LogupProver(const table_base& f_1, const table_base& f_2, const table_base& t_1, const table_base& t_2):f1(f_1), f2(f_2), t1(t_1), t2(t_2) {
+    pad(f1, t1[0]);
+    pad(f2, t2[0]);
     calculate_multiplicities();
 }
 
@@ -79,6 +81,7 @@ void LogupProver::calculate_multiplicities(){
     size_t m = t1.size();
     assert(n == f2.size());
     assert(m == t2.size());
+    assert(is_power_of_2(m));
     
     c.resize(m, 0);
 
@@ -137,7 +140,8 @@ void LogupProver::calculate_gh(const Goldilocks2::Element& gamma, const Goldiloc
 }
 
 std::array<LogupDef::pcs_base, 4> LogupProver::commit_ft(const uint64_t& rho_inv){
-    ligeroProver_base prf1(f1, rho_inv),
+    ligeroProver_base 
+                prf1(f1, rho_inv),
                 prf2(f2, rho_inv),
                 prt1(t1, rho_inv),
                 prt2(t2, rho_inv);

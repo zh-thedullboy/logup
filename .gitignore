@@ -5,3 +5,4 @@ test
 goldilocks
 src_debug
 merkle-tree
+bench
