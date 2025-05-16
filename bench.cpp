@@ -56,6 +56,7 @@ void bench_logup(const size_t& fsize){
     }
 
     alert("\n--------      begin logup      ----------\n\n");
+    std::cout << "size of f is " << fsize << '\n';
     auto start = std::chrono::high_resolution_clock::now();
     LogupProver lpr(f1, f2, t1, t2);
     std::cout << LogupVerifier::execute_logup(lpr, 4, 32) << '\n';
@@ -67,10 +68,12 @@ void bench_logup(const size_t& fsize){
 
 int main(){
     // bench_operation();
-    while(1){
-        size_t fsize;
-        alert("input a size for f:");
-        std::cin >> fsize;
+    std::vector<size_t> fsizes;
+    for(uint64_t i = 1; i < 32; ++i){
+	fsizes.push_back(1ull << i);
+    }
+
+    for(auto fsize: fsizes){
         bench_logup(fsize);
     }
 

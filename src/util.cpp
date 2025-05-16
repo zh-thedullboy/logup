@@ -132,7 +132,7 @@ std::vector<uint64_t> trange(const uint64_t& lbound, const uint64_t& ubound){
 }
 
 void alert(const std::string& mes){
-    std::cout << mes << '\n';
+    std::cout << mes << std::endl;
 }
 
 void print_table(const std::vector<Goldilocks2::Element>& table){
