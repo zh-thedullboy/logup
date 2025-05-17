@@ -3,6 +3,7 @@
 #include "mle_sumcheck.h"
 #include "product_sumcheck.h"
 #include "util.h"
+#include "timer.h"
 #include <cassert>
 #include <unordered_map>
 #include <array>
@@ -14,41 +15,6 @@ LogupProver::LogupProver(const table_base& f_1, const table_base& f_2, const tab
     pad(f2, t2[0]);
     calculate_multiplicities();
 }
-
-// 一定要用哈希表吗
-// void LogupProver::calculate_multiplicities(){
-//     size_t n = f1.size();
-//     size_t m = t1.size();
-//     assert(n == f2.size());
-//     assert(m == t2.size());
-
-//     // table c;
-//     std::vector<size_t> c1,c2;
-//     std::unordered_map<Goldilocks::Element, size_t> freq_map1, freq_map2;
-//     for (size_t i = 0;i < n; ++i){
-//         freq_map1[f1[i]]++;
-//         freq_map2[f2[i]]++;
-//     }
-//     c1.reserve(t1.size());
-//     c2.reserve(t2.size());
-//     for(size_t i = 0;i < m; ++i){
-//         c1.push_back(freq_map1[t1[i]]);
-//         c2.push_back(freq_map2[t2[i]]);
-//     }
-    
-//     assert(c1 == c2);
-//     c.reserve(c1.size());
-//     for (size_t i = 0;i < c1.size(); ++i){
-//         c.push_back(Goldilocks::fromU64(c1[i]));
-//     }
-    
-//     // print_table(t1);
-//     // print_table(t2);
-//     // print_table(f1);
-//     // print_table(f2);
-//     // print_table(c);
-//     // return MultilinearPolynomial(c);
-// }
 
 
 // void LogupProver::calculate_multiplicities(){
@@ -77,6 +43,7 @@ LogupProver::LogupProver(const table_base& f_1, const table_base& f_2, const tab
 
 // in the real case, t1 and t2 are sorted vectors (ranges)
 void LogupProver::calculate_multiplicities(){
+    set_timer("calculate c");
     size_t n = f1.size();
     size_t m = t1.size();
     assert(n == f2.size());
@@ -94,11 +61,12 @@ void LogupProver::calculate_multiplicities(){
         c[idx] += 1;
     }
     assert(!flag);
+    end_timer("calculate c");
 }
 
 
 void LogupProver::calculate_gh(const Goldilocks2::Element& gamma, const Goldilocks2::Element& lambda){
-    // h = c;
+    set_timer("calculate g and h");
 
     h.resize(c.size());
     for(size_t i = 0;i < c.size(); ++i){
@@ -137,37 +105,47 @@ void LogupProver::calculate_gh(const Goldilocks2::Element& gamma, const Goldiloc
 
     polyg.emplace(g);
     polyh.emplace(h);
+    end_timer("calculate g and h");
 }
 
 std::array<LogupDef::pcs_base, 4> LogupProver::commit_ft(const uint64_t& rho_inv){
+    set_timer("commit to f1, f2, f3, f4");
     ligeroProver_base 
                 prf1(f1, rho_inv),
                 prf2(f2, rho_inv),
                 prt1(t1, rho_inv),
                 prt2(t2, rho_inv);
+    end_timer("commit to f1, f2, f3, f4");
     return {prf1.commit(), prf2.commit(), prt1.commit(), prt2.commit()};
 }
 
 LogupDef::pcs_base LogupProver::commit_c(const uint64_t& rho_inv){
-    // return MultilinearPolynomial(c);
+    set_timer("commit to c");
     ligeroProver_base pr(c, rho_inv);
+    end_timer("commit to c");
     return pr.commit();
 }
 
 std::array<LogupDef::pcs_ext, 2> LogupProver::commit_gh(const uint64_t& rho_inv){
+    set_timer("commit to g, h");
     ligeroProver_ext prg(g, rho_inv), prh(h, rho_inv);
+    end_timer("commit to g, h");
     return {prg.commit(), prh.commit()};
 }
 
 
 std::array<sProver, 2> LogupProver::firstProvers(){
-    return {sProver(*polyg), sProver(*polyh)};
+    set_timer("initialize sumcheck provers for g and h");
+    sProver sprg(*polyg);
+    sProver sprh(*polyh);
+    end_timer("initialize sumcheck provers for g and h");
+    return {sprg, sprh};
 }
 
 std::array<pProver, 2> LogupProver::secondProvers(const std::vector<Goldilocks2::Element>& rg, const std::vector<Goldilocks2::Element>& rh){
     assert((1ull << rg.size()) == g.size());
     assert((1ull << rh.size()) == h.size());
-    // assert(rh.size() == h.size());
+    set_timer("initialize sumcheck provers for the product sumcheck");
     MultilinearPolynomial polydenomg(denomg);
     MultilinearPolynomial polydenomh(denomh);
     MultilinearPolynomial eqg = eq((*polyg).get_num_vars(), rg);
@@ -175,6 +153,7 @@ std::array<pProver, 2> LogupProver::secondProvers(const std::vector<Goldilocks2:
     pProver prg(eqg, *polyg, polydenomg);
     pProver prh(eqh, *polyh, polydenomh);
     std::array<pProver, 2> provers = {prg, prh};
+    end_timer("initialize sumcheck provers for the product sumcheck");
     return provers;
 }
 
@@ -184,65 +163,85 @@ std::uniform_int_distribution<uint64_t> LogupVerifier::dist(0, Goldilocks2::p - 
 
 bool LogupVerifier::execute_logup(LogupProver& lpr, const uint64_t& rho_inv, const size_t& sec_param){
     auto ft = lpr.commit_ft(rho_inv);
+    set_timer("check commitment of f, t");
     for(auto pc: ft){
         if(!ligeroVerifier::check_commit(pc, sec_param)) return false;
     }
-    alert("f,t commited");
+    end_timer("check commitment of f, t");
+    // alert("f,t commited");
+
 
     auto c = lpr.commit_c(rho_inv);
+    set_timer("check commitment of c");
     if(!ligeroVerifier::check_commit(c, sec_param)) return false;
-    alert("c commited");
+    end_timer("check commitment of c");
+    // alert("c commited");
 
     Goldilocks2::Element gamma = randnum();
     Goldilocks2::Element lambda = randnum();
     lpr.calculate_gh(gamma, lambda);
     auto gh = lpr.commit_gh(rho_inv);
+    set_timer("check commitment of g, h");
     for(auto pc: gh){
         if(!ligeroVerifier::check_commit(pc, sec_param)) return false;
     }
-    alert("g,h commited");
+    end_timer("check commitment of g, h");
+    // alert("g,h commited");
 
     auto pcsg = gh[0], pcsh = gh[1];
 
     std::array<sProver, 2> firstProvers = lpr.firstProvers();
     Goldilocks2::Element sum = firstProvers[0].get_sum();
     assert(sum == firstProvers[1].get_sum());
+    set_timer("sumcheck 1 / 4");
     if(!sVerifier::execute_sumcheck(firstProvers[0], pcsg, sec_param)){
         std::cout << "logup failed 0 \n";
         return false;
     }
-    alert("sumcheck 1 / 4 finished");
+    end_timer("sumcheck 1 / 4");
+    // alert("sumcheck 1 / 4 finished");
+
+    set_timer("sumcheck 2 / 4");
     if(!sVerifier::execute_sumcheck(firstProvers[1], pcsh, sec_param)){
         std::cout << "logup failed 1 \n";
         return false;
     }
-    alert("sumcheck 2 / 4 finished");
+    end_timer("sumcheck 2 / 4");
+    // alert("sumcheck 2 / 4 finished");
 
+    set_timer("generate rg and rh");
     const size_t numvar_g = find_ceiling_log2(pcsg.num_cols * pcsg.num_rows);
     const size_t numvar_h = find_ceiling_log2(pcsh.num_cols * pcsh.num_rows);
     std::vector<Goldilocks2::Element> rg = randvec(numvar_g);
     std::vector<Goldilocks2::Element> rh = randvec(numvar_h);
+    end_timer("generate rg and rh");
 
     std::array<pProver, 2> secondProvers = lpr.secondProvers(rg, rh);
     assert(secondProvers[0].get_sum() == Goldilocks2::one());
     assert(secondProvers[1].get_sum() == ligeroVerifier::open(c, rh, sec_param));
 
-
+    set_timer("calculate eq");
     MultilinearPolynomial eqg = eq(numvar_g, rg);
     MultilinearPolynomial eqh = eq(numvar_h, rh);
+    end_timer("calculate eq");
     auto pcsf1 = ft[0], pcsf2 = ft[1], pcst1 = ft[2], pcst2 = ft[3];
+
+    set_timer("sumcheck 3 / 4");
     if(!pVerifier::execute_logup_sumcheck(secondProvers[0], eqg, pcsg, pcsf1, pcsf2, gamma, lambda, sec_param)){
         std::cout << "logup failed 2 \n";
         return false;
     }
-    alert("sumcheck 3 / 4 finished");
+    end_timer("sumcheck 3 / 4");
+    // alert("sumcheck 3 / 4 finished");
 
+    set_timer("sumcheck 4 / 4");
     if(!pVerifier::execute_logup_sumcheck(secondProvers[1], eqh, pcsh, pcst1, pcst2, gamma, lambda, sec_param)){
         std::cout << "logup failed 3 \n";
-        return false;
+        return false;   
     }
-    alert("sumcheck 4 / 4 finished");
-    alert("logup finished");
+    end_timer("sumcheck 4 / 4");
+    // alert("sumcheck 4 / 4 finished");
+    // alert("logup finished");
     return true;
 }
     

@@ -9,6 +9,7 @@ g++ -std=c++17 -O3 -o  bench bench.cpp ./src/* -lssl -lcrypto -lpthread -lgoldil
 #include <cstdint>
 #include <iomanip>
 #include <chrono>
+#include "timer.h"
 
 #define iterations 1'000'000'000
 
@@ -55,27 +56,31 @@ void bench_logup(const size_t& fsize){
         f2[i] = t2[r];
     }
 
-    alert("\n--------      begin logup      ----------\n\n");
-    std::cout << "size of f is " << fsize << '\n';
-    auto start = std::chrono::high_resolution_clock::now();
+    alert("\n--------      begin logup      ----------");
+    std::cout << "size of f is " << fsize << '\n' << std::endl;
+    // auto start = std::chrono::high_resolution_clock::now();
+    set_timer("logup with f of size " + std::to_string(fsize));
     LogupProver lpr(f1, f2, t1, t2);
     std::cout << LogupVerifier::execute_logup(lpr, 4, 32) << '\n';
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double, std::milli> duration_ms = end - start;
-    std::cout << "It took " << duration_ms.count() << " ms for logup with f sized " << fsize << '\n';
+    end_timer("logup with f of size " + std::to_string(fsize), false);
+    // auto end = std::chrono::high_resolution_clock::now();
+    // std::chrono::duration<double, std::milli> duration_ms = end - start;
+    // std::cout << "It took " << duration_ms.count() << " ms for logup with f sized " << fsize << '\n';
     alert("\n\n--------      end logup      ----------\n\n");
+    totaltime();
 }
 
 int main(){
     // bench_operation();
-    std::vector<size_t> fsizes;
-    for(uint64_t i = 1; i < 32; ++i){
-	fsizes.push_back(1ull << i);
-    }
+    // std::vector<size_t> fsizes;
+    // for(uint64_t i = 1; i < 32; ++i){
+	//     fsizes.push_back(1ull << i);
+    // }
 
-    for(auto fsize: fsizes){
-        bench_logup(fsize);
-    }
+    // for(auto fsize: fsizes){
+    //     bench_logup(fsize);
+    // }
+    bench_logup(1ull << 28);
 
     return 0;
 }

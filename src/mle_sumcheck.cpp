@@ -14,21 +14,6 @@ sProver::sProver(const MultilinearPolynomial& g):g(g), nrnd(g.get_num_vars()), s
 */
 void sProver::initialize() {
     uint64_t tsize = 1ull << g.get_num_vars();
-    // keepTable.resize(tsize, Goldilocks2::zero());
-
-    // for (uint64_t mask = 0; mask < tsize; ++mask) {
-    //     keepTable[mask] = g.eval_hypercube(mask);
-    // }
-
-    // for (uint64_t i = 0; i < g.get_num_vars(); ++i) {
-    //     for (uint64_t mask = 0; mask < tsize; ++mask) {
-    //         if ((mask & (1ull << i)) == 0) {
-    //             uint64_t superset = mask | (1ull << i);
-    //             Goldilocks2::add(keepTable[superset], keepTable[superset], keepTable[mask]);
-    //         }
-    //     }
-    // }
-
     keepTable = g.get_eval_table();
     for (uint64_t mask = 0; mask < tsize; ++mask) {
         Goldilocks2::add(sum, sum, keepTable[mask]);
