@@ -1,6 +1,5 @@
 test.cpp
 test
-*.txt
 *.py
 goldilocks
 src_debug
