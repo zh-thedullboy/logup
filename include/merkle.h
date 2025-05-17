@@ -2,6 +2,7 @@
 
 #include "goldilocks_quadratic_ext.h"
 #include <openssl/sha.h>
+#include <openssl/evp.h>
 #include <cstdint>
 #include <vector>
 #include <array>

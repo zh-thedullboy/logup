@@ -35,34 +35,62 @@ std::array<uint8_t, 8> to_bytes(const Goldilocks::Element& e) {
 
 // hash one column
 MerkleDef::Digest hash_column(const MerkleTree_ext::col_t& col){
-    SHA256_CTX ctx;
-    SHA256_Init(&ctx);
+    // SHA256_CTX ctx;
+    // SHA256_Init(&ctx);
+    // std::array<uint8_t, SHA256_DIGEST_LENGTH> hash;
+    // // 16 for 2 * 64 / 8
+    // for(auto e: col) SHA256_Update(&ctx, to_bytes(e).data(), 16);
+    // SHA256_Final(hash.data(), &ctx);
+    // return hash;
+
+    EVP_MD_CTX *ctx = EVP_MD_CTX_new();
+    EVP_DigestInit_ex(ctx, EVP_sha256(), NULL);
     std::array<uint8_t, SHA256_DIGEST_LENGTH> hash;
     // 16 for 2 * 64 / 8
-    for(auto e: col) SHA256_Update(&ctx, to_bytes(e).data(), 16);
-    SHA256_Final(hash.data(), &ctx);
+    for(auto e: col) EVP_DigestUpdate(ctx, to_bytes(e).data(), 16);
+    unsigned int tmp;
+    EVP_DigestFinal_ex(ctx, hash.data(), &tmp);
+    EVP_MD_CTX_free(ctx);
     return hash;
 }
 
 // hash the column
 MerkleDef::Digest hash_column(const MerkleTree_base::col_t& col){
-    SHA256_CTX ctx;
-    SHA256_Init(&ctx);
+    // SHA256_CTX ctx;
+    // SHA256_Init(&ctx);
+    // std::array<uint8_t, SHA256_DIGEST_LENGTH> hash;
+    // // 8 for 64 / 8
+    // for(auto e: col) SHA256_Update(&ctx, to_bytes(e).data(), 8);
+    // SHA256_Final(hash.data(), &ctx);
+
+    EVP_MD_CTX *ctx = EVP_MD_CTX_new();
+    EVP_DigestInit_ex(ctx, EVP_sha256(), NULL);
     std::array<uint8_t, SHA256_DIGEST_LENGTH> hash;
-    // 8 for 64 / 8
-    for(auto e: col) SHA256_Update(&ctx, to_bytes(e).data(), 8);
-    SHA256_Final(hash.data(), &ctx);
+    // 16 for 2 * 64 / 8
+    for(auto e: col) EVP_DigestUpdate(ctx, to_bytes(e).data(), 8);
+    unsigned int tmp;
+    EVP_DigestFinal_ex(ctx, hash.data(), &tmp);
+    EVP_MD_CTX_free(ctx);
     return hash;
 }
 
 // hash two child nodes
 MerkleDef::Digest hash_node(const std::array<uint8_t, SHA256_DIGEST_LENGTH>& l,const std::array<uint8_t, SHA256_DIGEST_LENGTH>& r){
-    SHA256_CTX ctx;
-    SHA256_Init(&ctx);
+    // SHA256_CTX ctx;
+    // SHA256_Init(&ctx);
+    // std::array<uint8_t, SHA256_DIGEST_LENGTH> hash;
+    // SHA256_Update(&ctx, l.data(), SHA256_DIGEST_LENGTH);
+    // SHA256_Update(&ctx, r.data(), SHA256_DIGEST_LENGTH);
+    // SHA256_Final(hash.data(), &ctx);
+
+    EVP_MD_CTX *ctx = EVP_MD_CTX_new();
+    EVP_DigestInit_ex(ctx, EVP_sha256(), NULL);
     std::array<uint8_t, SHA256_DIGEST_LENGTH> hash;
-    SHA256_Update(&ctx, l.data(), SHA256_DIGEST_LENGTH);
-    SHA256_Update(&ctx, r.data(), SHA256_DIGEST_LENGTH);
-    SHA256_Final(hash.data(), &ctx);
+    EVP_DigestUpdate(ctx, l.data(), SHA256_DIGEST_LENGTH);
+    EVP_DigestUpdate(ctx, r.data(), SHA256_DIGEST_LENGTH);
+    unsigned int tmp;
+    EVP_DigestFinal_ex(ctx, hash.data(), &tmp);
+    EVP_MD_CTX_free(ctx);
     return hash;
 }
 
