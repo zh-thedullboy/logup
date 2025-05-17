@@ -16,31 +16,6 @@ LogupProver::LogupProver(const table_base& f_1, const table_base& f_2, const tab
     calculate_multiplicities();
 }
 
-
-// void LogupProver::calculate_multiplicities(){
-//     size_t n = f1.size();
-//     size_t m = t1.size();
-//     assert(n == f2.size());
-//     assert(m == t2.size());
-
-//     // table c;
-//     std::vector<size_t> c1;
-//     std::unordered_map<uint64_t, size_t> freq_map1, freq_map2;
-//     for (size_t i = 0;i < n; ++i){
-//         freq_map1[f1[i]]++;
-//         freq_map2[f2[i]]++;
-//     }
-//     c1.reserve(t1.size());
-//     c.reserve(t2.size());
-//     for(size_t i = 0;i < m; ++i){
-//         c1.push_back(freq_map1[t1[i]]);
-//         c.push_back(freq_map2[t2[i]]);
-//     }
-    
-//     assert(c1 == c);
-// }
-
-
 // in the real case, t1 and t2 are sorted vectors (ranges)
 void LogupProver::calculate_multiplicities(){
     set_timer("calculate c");
@@ -57,7 +32,7 @@ void LogupProver::calculate_multiplicities(){
     // instead, when you find f1[i] at t1[j], try to make sure f2[i] == t2[j]
     for(size_t i = 0; i < n; ++i){
         size_t idx = bisearch(t1, f1[i]);
-        if(flag = (flag || idx == t1.size() || f2[i] != t2[idx])) break;
+        if((flag = (flag || idx == t1.size() || f2[i] != t2[idx]))) break;
         c[idx] += 1;
     }
     assert(!flag);
@@ -257,24 +232,3 @@ std::vector<Goldilocks2::Element> LogupVerifier::randvec(const uint64_t& n){
     }
     return rands;
 }
-
-
-
-
-// LogupDef::pcs LogupProver::commit_h() const{
-//     return MultilinearPolynomial(h);
-// }
-
-
-// LogupDef::pcs LogupProver::commit_h(const Goldilocks2::Element& gamma, const Goldilocks2::Element& lambda) const{
-//     table h = c;
-//     for (size_t i = 0;i < t1.size(); ++i){
-//         Goldilocks2::Element denom;
-//         Goldilocks2::Element tmp;
-//         Goldilocks2::mul(tmp, lambda, f2[i]);
-//         Goldilocks2::add(tmp, tmp, f1[i]);
-//         Goldilocks2::sub(denom, gamma, tmp);
-//         Goldilocks2::div(g[i], g[i], denom);
-//     }
-//     return MultilinearPolynomial(g);
-// }

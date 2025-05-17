@@ -136,9 +136,6 @@ inline void pVerifier::interpolate_3(Goldilocks2::Element& fr,const Goldilocks2:
 }
 
 bool pVerifier::execute_sumcheck(pProver& pr, const std::array<ligeropcs_base, 3>& oracle, const size_t& sec_param){
-    // if(!ligeroVerifier::check_commit(oracle[0], sec_param)) return false;
-    // if(!ligeroVerifier::check_commit(oracle[1], sec_param)) return false;
-    // if(!ligeroVerifier::check_commit(oracle[2], sec_param)) return false;
 
     Goldilocks2::Element sum = pr.get_sum();
     size_t nrnd = pr.get_rounds();
@@ -182,9 +179,6 @@ bool pVerifier::execute_sumcheck(pProver& pr, const std::array<ligeropcs_base, 3
 }
 
 bool pVerifier::execute_sumcheck(pProver& pr, const std::array<ligeropcs_ext, 3>& oracle, const size_t& sec_param){
-    // if(!ligeroVerifier::check_commit(oracle[0], sec_param)) return false;
-    // if(!ligeroVerifier::check_commit(oracle[1], sec_param)) return false;
-    // if(!ligeroVerifier::check_commit(oracle[2], sec_param)) return false;
 
     Goldilocks2::Element sum = pr.get_sum();
     size_t nrnd = pr.get_rounds();
@@ -236,9 +230,6 @@ bool pVerifier::execute_logup_sumcheck(
     const Goldilocks2::Element gamma,
     const Goldilocks2::Element labmda,
     const size_t& sec_param){
-    // if(!ligeroVerifier::check_commit(frac, sec_param)) return false;
-    // if(!ligeroVerifier::check_commit(p1, sec_param)) return false;
-    // if(!ligeroVerifier::check_commit(p2, sec_param)) return false;
 
     Goldilocks2::Element sum = pr.get_sum();
     size_t nrnd = pr.get_rounds();
@@ -246,7 +237,7 @@ bool pVerifier::execute_logup_sumcheck(
 
     // s_{i - 1}
     std::array<Goldilocks2::Element, 4> si1;
-    for(int round = 1;round <= nrnd; ++round){
+    for(size_t round = 1;round <= nrnd; ++round){
         // s_i
         std::array<Goldilocks2::Element, 4> si;    
         si = pr.send_message(round, challenges);

@@ -1,8 +1,6 @@
 #include <cstdint>
 #include <string>
 #include <cassert>
-// #include <array>
-// #include "../goldilocks/src/goldilocks_base_field.hpp"
 #include "goldilocks_quadratic_ext.h"
 #include "util.h"
 #include <functional>
@@ -41,10 +39,6 @@ void pad_impl(std::vector<T>& table, const T& dummy){
     const size_t new_size = 1ull << find_ceiling_log2(table.size());
     table.resize(new_size, dummy);
 }
-
-// template void pad_impl<Goldilocks2::Element>(std::vector<Goldilocks2::Element>&, const Goldilocks2::Element&);
-// template void pad_impl<Goldilocks::Element>(std::vector<Goldilocks::Element>&, const Goldilocks::Element&);
-// template void pad_impl<uint64_t>(std::vector<uint64_t>&, const uint64_t&);
 
 void pad(std::vector<Goldilocks2::Element>& table, const Goldilocks2::Element dummy) {
     pad_impl(table, dummy);
@@ -294,36 +288,3 @@ std::vector<Goldilocks2::Element> eval_with_ntt_ext(std::vector<Goldilocks2::Ele
     }
     return ext;
 }
-
-// g++ -o test util.cpp -I../include -lpthread -lgmp
-
-#define DEBUG
-#undef DEBUG
-
-#ifdef DEBUG
-#include <iostream>
-#include <cstdlib>
-#include <ctime>
-int main(){
-    // std::string a;
-    // std::cin >> a;
-    // size_t n = a.length();
-    // std::cout<< convert_mask_to_u64(a, n) << '\n';
-
-    // size_t n;
-    // std::cin >> n;
-    // std::cout<< find_ceiling_log2(n) << '\n';
-
-    std::vector<Goldilocks2::Element> r = random_vec(20);
-    std::vector<Goldilocks2::Element> invr = random_vec(20);
-    batch_inverse(invr, r);
-    for(auto i = 0;i < r.size(); ++i){
-        Goldilocks2::Element tmp;
-        Goldilocks2::mul(tmp, invr[i], r[i]);
-        std::cout << Goldilocks2::toString(tmp) << '\n';
-    }
-
-
-    return 0;
-}
-#endif

@@ -9,3 +9,4 @@ bench
 *.png
 *.log
 *.d
+build

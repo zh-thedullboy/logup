@@ -93,17 +93,3 @@ std::vector<Goldilocks::Element> eval_with_ntt_base(std::vector<Goldilocks2::Ele
 
 // returns vec on ext field
 std::vector<Goldilocks2::Element> eval_with_ntt_ext(std::vector<Goldilocks2::Element> f, const size_t& N);
-
-// MultilinearPolynomial buildpolynomial(const Goldilocks::Element& gamma, const Goldilocks::Element& lambda, std::vector<Goldilocks2::Element>& p1, std::vector<Goldilocks2::Element>& p2);
-
-namespace std{
-    template <>
-    struct hash<Goldilocks::Element> {
-        size_t operator()(const Goldilocks::Element& arr) const {
-            size_t h1 = std::hash<uint64_t>{}(Goldilocks::toU64(arr));
-            // size_t h2 = std::hash<uint64_t>{}(Goldilocks::toU64(arr[1]));
-            return h1;
-        }
-    };
-}
-

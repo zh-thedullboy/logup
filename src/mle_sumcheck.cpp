@@ -166,7 +166,6 @@ bool sVerifier::execute_sumcheck(sProver& pr, const ligeropcs_ext& oracle, const
 Goldilocks2::Element sVerifier::challenge(){
     static std::random_device rd;
     static std::mt19937_64 gen(rd());
-    // 设定 Goldilocks2 的模（MODULUS）为常量，假设你有这个值
     constexpr uint64_t MODULUS = Goldilocks2::p;
     std::uniform_int_distribution<uint64_t> dist(0, MODULUS - 1);
 
