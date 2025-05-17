@@ -1,5 +1,5 @@
 #include "merkle.h"
-#include "../goldilocks/src/goldilocks_base_field.hpp"
+#include "goldilocks_base_field.hpp"
 #include "util.h"
 
 #include <array>

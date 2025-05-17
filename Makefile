@@ -1,37 +1,41 @@
-CXX := g++
-AR := ar
-CXXFLAGS := -std=c++17 -g 
-LDFLAGS := 
-SRC := $(wildcard src/*.cpp)
-SRC += ./golilocks/src/*.cpp
-OBJ := $(SRC:.cpp=.o)
-LIB := 
-TEST_SRC := $(wildcard test/test_*.cpp)
-TEST_BIN := $(TEST_SRC:.cpp=)
+LIBOMP := $(shell find /usr/lib/llvm-* -name "libomp.so" | sed 's/libomp.so//')
+ifndef LIBOMP
+$(error LIBOMP is not set, you need to install libomp-dev)
+endif
 
-all: $(LIB)
+CXX = g++
+AR = ar
+CXXFLAGS := -std=c++17 -Wall -pthread -fopenmp
+DEBUGFLAG := -g
+CPPFLAGS ?= -MMD -MP -mavx2
+LDFLAGS := -lpthread -lgmp -lgoldilocks -lssl -lcrypto
+ASFLAGS := -felf64
 
-$(LIB): $(OBJ)
-	$(AR) rcs $@ $^
+NVCC := /usr/local/cuda/bin/nvcc
 
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+INC := -I./include -I./goldilocks/src
+LINK := -L./goldilocks/
+SRC_DIR := ./src
+SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
 
-# test: all test.cpp
-# 	$(CXX) $(CXXFLAGS) test.cpp -L. -lsumcheck -o test
-# 	@echo "\n"
-# 	./test
+# g++ -g -std=c++17 -o test test.cpp ./src/* -lssl -lcrypto -lpthread -lgoldilocks -I./include -L./goldilocks/ -fopenmp -mavx2 -I./goldilocks/src -lgmp
+LIB_NAME := libgoldilocks.a
+LIB_DIR := ./goldilocks
+LIB_SRC_DIR := ./goldilocks/src
+LIB_SRCS := $(shell find $(LIB_SRC_DIR) -name '*.cpp')
+LIB_OBJS := $(LIB_SRCS:%.cpp=%.o)
 
-refresh: clean all
+lib: $(LIB_OBJS)
+	$(AR) rcs $(LIB_DIR)/$(LIB_NAME) $(LIB_OBJS)
+	$(RM) $(LIB_SRC_DIR)/*.o
+	$(RM) $(LIB_SRC_DIR)/*.d
 
+%.cpp.o: %.cpp
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
-test: refresh ${TEST_BIN}
-
-test/%: test/%.cpp $(LIB)
-	$(CXX) $(CXXFLAGS) $< -L. -lsumcheck -o $@
-	@echo "Built $@"
+test: $(LIB_DIR)/$(LIB_NAME)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o test ./test.cpp $(SRCS) $(LDFLAGS) $(INC) $(LINK) 
 
 clean:
-	rm -f $(OBJ) $(LIB) $(TEST_BIN)
-
-.PHONY:all
+	$(RM) $(LIB_DIR)/$(LIB_NAME)
+	$(RM) ./test

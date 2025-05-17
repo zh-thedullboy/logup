@@ -146,7 +146,7 @@ bool pVerifier::execute_sumcheck(pProver& pr, const std::array<ligeropcs_base, 3
 
     // s_{i - 1}
     std::array<Goldilocks2::Element, 4> si1;
-    for(int round = 1;round <= nrnd; ++round){
+    for(size_t round = 1;round <= nrnd; ++round){
         // s_i
         std::array<Goldilocks2::Element, 4> si;    
         si = pr.send_message(round, challenges);

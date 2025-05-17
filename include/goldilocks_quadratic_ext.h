@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../goldilocks/src/goldilocks_base_field.hpp"
+#include "goldilocks_base_field.hpp"
 #include <cstdint>
 #include <vector>
 #include <array>

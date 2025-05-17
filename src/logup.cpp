@@ -57,7 +57,7 @@ void LogupProver::calculate_multiplicities(){
     // instead, when you find f1[i] at t1[j], try to make sure f2[i] == t2[j]
     for(size_t i = 0; i < n; ++i){
         size_t idx = bisearch(t1, f1[i]);
-        if(flag = flag || idx == t1.size() || f2[i] != t2[idx]) break;
+        if(flag = (flag || idx == t1.size() || f2[i] != t2[idx])) break;
         c[idx] += 1;
     }
     assert(!flag);
