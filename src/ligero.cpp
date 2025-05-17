@@ -79,13 +79,19 @@ ligeroProver_base::ligeroProver_base(const std::vector<uint64_t>& w, const uint6
     for(size_t i = 0; i < w.size(); ++i){
         M[i] = Goldilocks::fromU64(w[i]);
     }
+    set_timer("ntt");
+    pause_timer("ntt");
+    alert("log-size of vector to be ntt-ed: " + std::to_string(b));
     for(size_t i = 0; i < a; ++i){
         std::vector<Goldilocks::Element> dataline(b);
         for(size_t j = 0; j < b; ++j){
             dataline[j] = M[i * b + j];
         }
+        resume_timer("ntt");
         codewords.push_back(rsencode(dataline, rho_inv));
+        pause_timer("ntt");
     }
+    end_timer("ntt");
     end_timer("make matrix");
     set_timer("build merkle tree");
     mt_t = MerkleTree_base(codewords);

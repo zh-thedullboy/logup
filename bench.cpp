@@ -60,7 +60,7 @@ void bench_logup(const size_t& fsize){
     std::cout << "size of f is " << fsize << '\n' << std::endl;
     set_timer("logup with f of size " + std::to_string(fsize));
     LogupProver lpr(f1, f2, t1, t2);
-    std::cout << LogupVerifier::execute_logup(lpr, 4, 32) << '\n';
+    std::cout << LogupVerifier::execute_logup(lpr, 2, 32) << '\n';
     end_timer("logup with f of size " + std::to_string(fsize), false);
     alert("\n\n--------      end logup      ----------\n\n");
     totaltime();
@@ -76,7 +76,7 @@ int main(){
     // for(auto fsize: fsizes){
     //     bench_logup(fsize);
     // }
-    bench_logup(1ull << 28);
+    bench_logup(1ull << 20);
 
     return 0;
 }
