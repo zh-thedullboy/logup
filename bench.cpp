@@ -76,7 +76,8 @@ int main(){
     // for(auto fsize: fsizes){
     //     bench_logup(fsize);
     // }
-    bench_logup(1ull << 20);
+    bench_logup(1ull << 10);
+    bench_logup(1ull << 28);
 
     return 0;
 }

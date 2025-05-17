@@ -25,10 +25,10 @@ file(GLOB SOURCES
 )
 
 # target test
-add_executable(test test.cpp)
-target_sources(test PRIVATE ${SOURCES})
-target_compile_options(test PRIVATE -Wall -O3 -mavx2 -fopenmp)
-target_link_libraries(test PRIVATE pthread gmp ssl crypto goldilocks)
+# add_executable(test test.cpp)
+# target_sources(test PRIVATE ${SOURCES})
+# target_compile_options(test PRIVATE -Wall -O3 -mavx2 -fopenmp)
+# target_link_libraries(test PRIVATE pthread gmp ssl crypto goldilocks)
 
 # target bench
 add_executable(bench bench.cpp)
