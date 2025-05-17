@@ -3,6 +3,7 @@
 #include "goldilocks_quadratic_ext.h"
 #include "merkle.h"
 #include "util.h"
+#include "timer.h"
 #include <cmath>
 #include <openssl/sha.h>
 #include <cassert>
@@ -72,6 +73,7 @@ ligeroProver_base::ligeroProver_base(const std::vector<uint64_t>& w, const uint6
     // 2^l = a * b
     a = 1ull << (l >> 1);       //floor(l/2)
     b = a << (l & 1);           //ceil(l/2)
+    set_timer("make matrix");
     M.resize(1ull << l, Goldilocks::zero());
     codelen = b * rho_inv;
     for(size_t i = 0; i < w.size(); ++i){
@@ -84,7 +86,10 @@ ligeroProver_base::ligeroProver_base(const std::vector<uint64_t>& w, const uint6
         }
         codewords.push_back(rsencode(dataline, rho_inv));
     }
+    end_timer("make matrix");
+    set_timer("build merkle tree");
     mt_t = MerkleTree_base(codewords);
+    end_timer("build merkle tree");
 }
 
 std::vector<Goldilocks2::Element> ligeroProver_base::lincomb(const std::vector<Goldilocks2::Element>& r) const{

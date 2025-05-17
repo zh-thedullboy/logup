@@ -58,14 +58,10 @@ void bench_logup(const size_t& fsize){
 
     alert("\n--------      begin logup      ----------");
     std::cout << "size of f is " << fsize << '\n' << std::endl;
-    // auto start = std::chrono::high_resolution_clock::now();
     set_timer("logup with f of size " + std::to_string(fsize));
     LogupProver lpr(f1, f2, t1, t2);
     std::cout << LogupVerifier::execute_logup(lpr, 4, 32) << '\n';
     end_timer("logup with f of size " + std::to_string(fsize), false);
-    // auto end = std::chrono::high_resolution_clock::now();
-    // std::chrono::duration<double, std::milli> duration_ms = end - start;
-    // std::cout << "It took " << duration_ms.count() << " ms for logup with f sized " << fsize << '\n';
     alert("\n\n--------      end logup      ----------\n\n");
     totaltime();
 }

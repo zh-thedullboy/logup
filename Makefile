@@ -5,7 +5,7 @@ endif
 
 CXX = g++
 AR = ar
-CXXFLAGS := -std=c++17 -Wall -pthread -fopenmp
+CXXFLAGS := -std=c++17 -O3 -Wall -pthread -fopenmp
 DEBUGFLAG := -g
 CPPFLAGS ?= -MMD -MP -mavx2
 LDFLAGS := -lpthread -lgmp -lgoldilocks -lssl -lcrypto
@@ -17,6 +17,7 @@ INC := -I./include -I./goldilocks/src
 LINK := -L./goldilocks/
 SRC_DIR := ./src
 SRCS := $(shell find $(SRC_DIR) -name '*.cpp')
+SRC_OBJS := $(SRCS:%.cpp=%.o)
 
 # g++ -g -std=c++17 -o test test.cpp ./src/* -lssl -lcrypto -lpthread -lgoldilocks -I./include -L./goldilocks/ -fopenmp -mavx2 -I./goldilocks/src -lgmp
 LIB_NAME := libgoldilocks.a
@@ -33,9 +34,10 @@ lib: $(LIB_OBJS)
 %.cpp.o: %.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
-test: $(LIB_DIR)/$(LIB_NAME)
+test: $(LIB_DIR)/$(LIB_NAME) $(LIB_OBJS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -o test ./test.cpp $(SRCS) $(LDFLAGS) $(INC) $(LINK) 
 
 clean:
 	$(RM) $(LIB_DIR)/$(LIB_NAME)
 	$(RM) ./test
+	$(RM) ./bench
