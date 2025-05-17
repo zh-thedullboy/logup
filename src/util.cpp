@@ -6,6 +6,7 @@
 #include <functional>
 #include <array>
 #include <algorithm>
+#include <iomanip>
 
 uint64_t convert_mask_to_u64(const std::string& mask, const size_t &nvar) {
     assert(nvar >= mask.length());
@@ -150,7 +151,6 @@ void print_table(const std::vector<size_t>& table){
     std::cout << '\n';
 }
 
-#include <iomanip>
 void print_hash(const std::array<uint8_t, 32>& hash){
     std::cout << "SHA256: ";
     for (int i = 0; i < 32; ++i) {
@@ -195,33 +195,70 @@ Goldilocks2::Element Horner(const std::vector<Goldilocks2::Element> &coefs, cons
     return res;
 }
 
-std::vector<Goldilocks::Element> NTT(const std::vector<Goldilocks::Element>& coefs){
-    if (coefs.size() == 1) return coefs;
-
-    const size_t n = coefs.size();
+void in_place_NTT(std::vector<Goldilocks::Element>& a) {
+    const size_t n = a.size();
     const size_t m = find_ceiling_log2(n);
 
-    // calculate f1, f2;
-    std::vector<Goldilocks::Element> even(n >> 1), odd(n >> 1);
-    for(size_t i = 0;i < n; ++i){
-        if (i & 1) odd[i >> 1] = coefs[i];
-        else even[i >> 1] = coefs[i];
-    }
-    std::vector<Goldilocks::Element> f1 = NTT(even);
-    std::vector<Goldilocks::Element> f2 = NTT(odd);
-
-    std::vector<Goldilocks::Element> f(n);
-    const size_t offset = n >> 1;
-    Goldilocks::Element wn = Goldilocks::one();
-    // traverse and calculate f
-    for (size_t i = 0; i < offset; ++i){
-        f[i] = f1[i] + Goldilocks::mul(wn, f2[i]);
-        f[i + offset] = f1[i] - Goldilocks::mul(wn, f2[i]);
-        Goldilocks::mul(wn, wn, ROOTS[m]);
+    // Bit-reverse permutation
+    for (size_t i = 1, j = 0; i < n; ++i) {
+        size_t bit = n >> 1;
+        for (; j & bit; bit >>= 1)
+            j ^= bit;
+        j ^= bit;
+        if (i < j) std::swap(a[i], a[j]);
     }
 
-    return f;
+    // Iterative Cooley-Tukey NTT
+    for (size_t len = 2, level = 1; len <= n; len <<= 1, ++level) {
+        size_t half = len >> 1;
+        Goldilocks::Element w_len = ROOTS[level]; // omega^(N / len)
+        for (size_t i = 0; i < n; i += len) {
+            Goldilocks::Element w = Goldilocks::one();
+            for (size_t j = 0; j < half; ++j) {
+                auto &u = a[i + j];
+                auto &v = a[i + j + half];
+                Goldilocks::Element t = Goldilocks::mul(w, v);
+                v = u - t;
+                u = u + t;
+                Goldilocks::mul(w, w, w_len);
+            }
+        }
+    }
 }
+
+std::vector<Goldilocks::Element> NTT(const std::vector<Goldilocks::Element>& input) {
+    std::vector<Goldilocks::Element> a = input;
+    in_place_NTT(a);
+    return a;
+}
+
+// std::vector<Goldilocks::Element> NTT(const std::vector<Goldilocks::Element>& coefs){
+//     if (coefs.size() == 1) return coefs;
+
+//     const size_t n = coefs.size();
+//     const size_t m = find_ceiling_log2(n);
+
+//     // calculate f1, f2;
+//     std::vector<Goldilocks::Element> even(n >> 1), odd(n >> 1);
+//     for(size_t i = 0;i < n; ++i){
+//         if (i & 1) odd[i >> 1] = coefs[i];
+//         else even[i >> 1] = coefs[i];
+//     }
+//     std::vector<Goldilocks::Element> f1 = NTT(even);
+//     std::vector<Goldilocks::Element> f2 = NTT(odd);
+
+//     std::vector<Goldilocks::Element> f(n);
+//     const size_t offset = n >> 1;
+//     Goldilocks::Element wn = Goldilocks::one();
+//     // traverse and calculate f
+//     for (size_t i = 0; i < offset; ++i){
+//         f[i] = f1[i] + Goldilocks::mul(wn, f2[i]);
+//         f[i + offset] = f1[i] - Goldilocks::mul(wn, f2[i]);
+//         Goldilocks::mul(wn, wn, ROOTS[m]);
+//     }
+
+//     return f;
+// }
 
 size_t highest_bit_mask(const size_t& n){
     size_t mask = SIZE_MAX;
