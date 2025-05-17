@@ -6,6 +6,6 @@ goldilocks
 src_debug
 merkle-tree
 bench
-.png
-.log
-.d
+*.png
+*.log
+*.d
